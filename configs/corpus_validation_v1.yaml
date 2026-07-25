@@ -1,0 +1,33 @@
+# Validation Corpus Manifest — exoplanet_atmospheres_validation_v1
+#
+# Historical-validation counterpart of exoplanet_atmospheres_v1 (Corpus A,
+# cutoff 2020-12-31). This corpus deliberately contains ONLY post-cutoff
+# literature (2021-2026): it is the "future" used to check whether
+# questions generated from Corpus A were subsequently posed, answered, or
+# proven valuable by the community.
+#
+# ISOLATION RULE: records from this corpus must never enter the Corpus A
+# pipeline (papers.parquet, core selection, claims, Evidence Graph).
+# Normalization filters by query_version; validation records live in
+# papers_validation.parquet only.
+
+corpus_id: exoplanet_atmospheres_validation_v1
+validates: exoplanet_atmospheres_v1
+validation_window:
+  min: 2021
+  max: 2026
+
+literature:
+  source: NASA_ADS
+  ads_queries:
+    - '"exoplanet atmosphere"'
+    - '"transmission spectroscopy" AND exoplanet'
+    - '"emission spectroscopy" AND exoplanet'
+    - '"atmospheric retrieval" AND exoplanet'
+    # targeted follow-up coverage for the ranked questions' objects
+    - '"HD 189733" AND (wind OR "vertical shear" OR blueshift)'
+    - '"WASP-12" AND (water OR "C/O" OR retrieval)'
+    - '"HD 209458" AND (water OR sodium OR abundance)'
+    - '"TRAPPIST-1" AND (JWST OR "carbon dioxide" OR CO2)'
+    - '"WASP-121" AND water'
+  max_records: 6000

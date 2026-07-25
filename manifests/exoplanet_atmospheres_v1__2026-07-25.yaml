@@ -1,0 +1,89 @@
+# Corpus Manifest — exoplanet_atmospheres_v1
+#
+# Every experiment must know exactly what the system has seen.
+# This manifest defines the scope, time boundaries, and selection rules
+# for corpus v1. It is the single source of truth for data collection.
+#
+# IMPORTANT: cutoff_date enables historical backtesting.
+#   Corpus A: only data available up to 2020-12-31.
+#   Validation: discoveries from 2021-2026 verify the questions the
+#   system generated, without letting it peek at the future.
+
+corpus_id: exoplanet_atmospheres_v1
+cutoff_date: "2020-12-31"
+
+scope:
+  domain: exoplanet atmospheres
+  focus: >
+    Atmospheric composition interpretation in exoplanet transmission
+    spectra, cloud/haze degeneracies, and instrument systematics.
+
+literature:
+  source: NASA_ADS            # primary literature entry point
+  supplement: arXiv           # latest preprints not yet indexed by ADS
+  ads_queries:
+    - '"exoplanet atmosphere"'
+    - '"transmission spectroscopy" AND exoplanet'
+    - '"emission spectroscopy" AND exoplanet'
+    - '"atmospheric retrieval" AND exoplanet'
+  publication_year:
+    min: 2015
+    max: 2020                 # bounded by cutoff_date for Corpus A
+  max_records: 5000
+  fields:                     # metadata collected per record
+    - title
+    - abstract
+    - author
+    - pubdate
+    - doi
+    - bibcode
+    - arxiv_id
+    - citation
+    - reference
+    - keyword
+    - data                    # datasets / observed objects mentioned
+
+catalogs:
+  nasa_exoplanet_archive:
+    access: TAP               # programmatic TAP/API queries
+    tables:
+      - pscomppars
+    fields:
+      - pl_name
+      - hostname
+      - pl_bmasse
+      - pl_rade
+      - pl_orbper
+      - pl_eqt
+      - discoverymethod
+      - st_spectype
+      - disc_refname
+      - pl_pubdate
+      # uncertainty columns (err1/err2) are retained for all numeric fields
+
+observations:
+  mast:
+    missions:
+      - JWST
+      - HST
+    metadata_only: true       # never bulk-download raw FITS in v1
+    fields:
+      - target_name
+      - instrument_name
+      - em_min
+      - em_max
+      - t_exptime
+      - proposal_id
+      - t_min
+      - calib_level
+      - dataURL
+      - dataproduct_type
+
+full_text:
+  max_documents: 500
+  selection_method: citation_and_topic_coverage
+  selection_criteria:
+    - citation_count
+    - keyword_coverage
+    - time_stratification
+    - target_diversity

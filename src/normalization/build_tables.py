@@ -44,8 +44,15 @@ def _strip_arxiv_version(arxiv_id: str) -> str:
     return head if head and tail.isdigit() else arxiv_id
 
 
-def build_papers(raw_root: Path) -> tuple[pa.Table, pa.Table, pa.Table]:
-    """Flatten ADS + arXiv envelopes into papers, authors, paper_citations."""
+def build_papers(
+    raw_root: Path, corpus_id: str = "exoplanet_atmospheres_v1"
+) -> tuple[pa.Table, pa.Table, pa.Table]:
+    """Flatten ADS + arXiv envelopes into papers, authors, paper_citations.
+
+    Only records fetched under `corpus_id` are ingested — validation
+    corpora (post-cutoff literature) share the raw layout but must never
+    leak into the Corpus A tables.
+    """
     papers: list[dict[str, Any]] = []
     authors: list[dict[str, Any]] = []
     citations: list[dict[str, Any]] = []
@@ -53,6 +60,8 @@ def build_papers(raw_root: Path) -> tuple[pa.Table, pa.Table, pa.Table]:
 
     for path in sorted(raw_root.glob("literature/ads/**/*.jsonl")):
         for rec in read_jsonl(path):
+            if rec.get("query_version") != corpus_id:
+                continue
             doc = rec["payload"]
             paper_id = doc.get("bibcode") or rec["source_id"]
             if not paper_id or paper_id in seen:
@@ -90,6 +99,8 @@ def build_papers(raw_root: Path) -> tuple[pa.Table, pa.Table, pa.Table]:
     }
     for path in sorted(raw_root.glob("literature/arxiv/**/*.jsonl")):
         for rec in read_jsonl(path):
+            if rec.get("query_version") != corpus_id:
+                continue
             doc = rec["payload"]
             bare_id = _strip_arxiv_version(doc["arxiv_id"] or "")
             paper_id = f"arXiv:{bare_id}"
