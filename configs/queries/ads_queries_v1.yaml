@@ -1,0 +1,33 @@
+# ADS search keywords and exclusion rules for corpus v1.
+# Scope: atmospheric composition interpretation in exoplanet transmission
+# spectra, cloud/haze degeneracies, and instrument systematics.
+
+include_keywords:
+  - exoplanet atmosphere
+  - transmission spectroscopy
+  - emission spectroscopy
+  - atmospheric retrieval
+  - transit spectroscopy
+  - water vapor absorption exoplanet
+  - clouds and hazes exoplanet
+  - haze degeneracy
+  - mie scattering exoplanet
+  - stellar contamination transit
+  - transit light source effect
+  - instrument systematics spectroscopy
+  - hot jupiter atmosphere
+  - sub-neptune atmosphere
+  - hubble wfc3 exoplanet spectrum
+  - jwst transiting exoplanet
+  - atmospheric metallicity exoplanet
+  - equilibrium chemistry exoplanet
+
+exclude_rules:
+  - description: Solar-system-only atmospheric studies
+    pattern: solar system NOT exoplanet
+  - description: Pure instrumentation papers with no science analysis
+    pattern: instrument design NOT (spectrum OR atmosphere)
+  - description: Exoplanet detection/discovery papers with no atmosphere content
+    pattern: radial velocity discovery NOT atmosphere
+  - description: Habitability/biosignature reviews outside the spectral scope
+    pattern: biosignature review NOT spectroscopy

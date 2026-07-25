@@ -1,9 +1,16 @@
+# Data layers — never committed. The repository keeps the queries,
+# manifests, schemas, and code that regenerate them (see data/README.md).
+data/raw/
+data/normalized/
+data/processed/
+
 # Python
 __pycache__/
 *.py[cod]
 .venv/
 venv/
 *.egg-info/
+.pytest_cache/
 
 # LaTeX build artifacts
 *.aux
@@ -16,11 +23,16 @@ venv/
 *.synctex.gz
 *.toc
 
-# Experiments / data
+# Experiments / model artifacts
 *.ckpt
 *.pt
 wandb/
 .ipynb_checkpoints/
+
+# Local databases and secrets
+*.duckdb
+*.duckdb.wal
+.env
 
 # OS / editor
 .DS_Store
