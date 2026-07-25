@@ -17,13 +17,29 @@ NODE_TYPES = (
 
 EDGE_TYPES = (
     "supports",
-    "contradicts",
+    "contradicts",            # direct contradiction: both cannot be true
+    "qualifies",              # adds limiting conditions to the earlier result
+    "challenges_method",      # disputes the methodology, not the observation
+    "explains_discrepancy",   # offers a mechanism reconciling a tension
     "measures",
     "depends_on",
     "uses_dataset",
     "assumes",
     "refines",
     "fails_to_explain",
+)
+
+# Human review verdicts on R4 candidate pairs map to these edge types.
+# Splitting tension kinds matters: batch 001 review showed 2 of 3
+# candidates were methodological challenges or supportive comparisons —
+# collapsing everything into `contradicts` would wrongly upgrade
+# "adds constraints to the old result" into "negates the old result".
+TENSION_RELATIONS = (
+    "contradicts",
+    "qualifies",
+    "challenges_method",
+    "explains_discrepancy",
+    "supports",
 )
 
 EVIDENCE_NODES = pa.schema(

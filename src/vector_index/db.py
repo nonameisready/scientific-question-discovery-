@@ -35,25 +35,11 @@ CREATE INDEX IF NOT EXISTS chunks_paper_id_idx ON chunks (paper_id);
 """
 
 
-def _load_dotenv(path: str | Path = ".env") -> None:
-    """Minimal .env loader — sets variables not already in the environment."""
-    path = Path(path)
-    if not path.exists():
-        return
-    for line in path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, _, value = line.partition("=")
-        value = value.strip()
-        # values may be quoted for shell `source` compatibility
-        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
-            value = value[1:-1]
-        os.environ.setdefault(key.strip(), value)
+from src.common import load_dotenv
 
 
 def get_dsn() -> str:
-    _load_dotenv()
+    load_dotenv()
     dsn = os.environ.get("PG_DSN")
     if not dsn:
         raise EnvironmentError(

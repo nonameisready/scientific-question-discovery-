@@ -146,6 +146,25 @@ def unexplained_targets(con: duckdb.DuckDBPyConnection) -> duckdb.DuckDBPyRelati
     )
 
 
+def labeled_tensions(con: duckdb.DuckDBPyConnection) -> duckdb.DuckDBPyRelation:
+    """All human-typed tension edges (contradicts / qualifies /
+    challenges_method / explains_discrepancy / supports), so reviewed
+    relationships stay visible even when they are not contradictions."""
+    return con.sql(
+        """
+        SELECT e.edge_type, a.paper_id AS paper_a, b.paper_id AS paper_b,
+               e.basis
+        FROM edges e
+        JOIN nodes a ON e.from_node = a.node_id
+        JOIN nodes b ON e.to_node   = b.node_id
+        WHERE e.created_by = 'human'
+          AND e.edge_type IN ('contradicts', 'qualifies', 'challenges_method',
+                              'explains_discrepancy', 'supports')
+        ORDER BY e.edge_type, paper_a
+        """
+    )
+
+
 def run_all(data_root: Path = DATA_ROOT) -> None:
     con = _connect(data_root)
     for name, fn in [
@@ -153,6 +172,7 @@ def run_all(data_root: Path = DATA_ROOT) -> None:
         ("Q2 conflict origins", conflict_origins),
         ("Q3 single-dataset conclusions", single_dataset_conclusions),
         ("Q4 unexplained targets", unexplained_targets),
+        ("Labeled tensions (human-reviewed)", labeled_tensions),
     ]:
         print(f"\n=== {name} ===")
         fn(con).show()

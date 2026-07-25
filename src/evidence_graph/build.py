@@ -35,6 +35,7 @@ from src.common import DATA_ROOT, read_jsonl
 from src.evidence_graph.schema import (
     EVIDENCE_EDGES,
     EVIDENCE_NODES,
+    TENSION_RELATIONS,
     validate_edge_type,
     validate_node_type,
 )
@@ -118,12 +119,24 @@ def _load_reviews(data_root: Path) -> dict[frozenset, dict]:
     """Human verdicts on candidate pairs, keyed by the claim-ID pair.
 
     Review record format (data/annotations/<batch>/contradictions.jsonl):
-      {"claim_id_a": ..., "claim_id_b": ..., "verdict": "confirmed"|"rejected",
+      {"claim_id_a": ..., "claim_id_b": ...,
+       "relation": one of schema.TENSION_RELATIONS,   # preferred
+       "verdict": "confirmed"|"rejected",             # legacy form
        "origin": "data"|"method"|"assumption", "note": "..."}
+
+    `relation` types the tension precisely (a qualifies/challenges_method
+    edge is kept in the graph instead of being dropped as a non-
+    contradiction). Legacy verdicts map: confirmed -> contradicts,
+    rejected -> no edge.
     """
     reviews: dict[frozenset, dict] = {}
     for path in sorted((data_root / "annotations").glob("*/contradictions.jsonl")):
         for rec in read_jsonl(path):
+            relation = rec.get("relation")
+            if relation is not None and relation not in TENSION_RELATIONS:
+                raise ValueError(
+                    f"{path}: relation {relation!r} not in {TENSION_RELATIONS}"
+                )
             reviews[frozenset((rec["claim_id_a"], rec["claim_id_b"]))] = rec
     return reviews
 
@@ -181,18 +194,23 @@ def build_graph(data_root: Path = DATA_ROOT) -> tuple[int, int]:
         for cand in candidates:
             key = frozenset((cand["claim_id_a"], cand["claim_id_b"]))
             review = reviews.get(key)
-            cand["status"] = review["verdict"] if review else "pending"
+            relation = None
+            if review:
+                relation = review.get("relation") or (
+                    "contradicts" if review.get("verdict") == "confirmed" else None
+                )
+            cand["status"] = relation or (review and review.get("verdict")) or "pending"
             f.write(json.dumps(cand, ensure_ascii=False) + "\n")
-            if review and review["verdict"] == "rejected":
-                continue
-            if review and review["verdict"] == "confirmed":
+            if review and relation is None:
+                continue  # rejected: no tension edge at all
+            if review:
                 basis = (
                     f"origin={review.get('origin', 'unresolved')}; "
                     f"{review.get('note', '')}".strip()
                 )
                 edges.append(_edge(claim_nodes[cand["claim_id_a"]],
                                    claim_nodes[cand["claim_id_b"]],
-                                   "contradicts", basis, "human", confidence=1.0))
+                                   relation, basis, "human", confidence=1.0))
             else:
                 basis = (
                     f"candidate: shared object {cand['objects']} "
