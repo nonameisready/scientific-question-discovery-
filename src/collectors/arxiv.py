@@ -47,12 +47,19 @@ def _parse_entry(entry: ET.Element) -> dict[str, Any]:
     }
 
 
-def search(query: str, max_records: int, category: str = "astro-ph.EP") -> Iterator[dict[str, Any]]:
-    """Yield parsed arXiv entries for a query, paginating until exhausted."""
+def search(
+    query: str,
+    max_records: int,
+    year_min: int,
+    year_max: int,
+    category: str = "astro-ph.EP",
+) -> Iterator[dict[str, Any]]:
+    """Yield parsed arXiv entries for a query within the corpus year window."""
+    date_range = f"submittedDate:[{year_min}01010000 TO {year_max}12312359]"
     start = 0
     while start < max_records:
         params = {
-            "search_query": f'all:{query} AND cat:{category}',
+            "search_query": f'all:{query} AND cat:{category} AND {date_range}',
             "start": start,
             "max_results": min(PAGE_SIZE, max_records - start),
             "sortBy": "submittedDate",
@@ -73,6 +80,7 @@ def collect(config_path: str) -> list[str]:
     """Run supplement queries from the corpus manifest; return written paths."""
     config = load_corpus_config(config_path)
     lit = config["literature"]
+    years = lit["publication_year"]
     per_query_cap = lit["max_records"] // max(len(lit["ads_queries"]), 1)
     out_dir = raw_dir("literature", "arxiv")
 
@@ -86,7 +94,7 @@ def collect(config_path: str) -> list[str]:
                 source_id=doc["arxiv_id"],
                 payload=doc,
             )
-            for doc in search(plain, per_query_cap)
+            for doc in search(plain, per_query_cap, years["min"], years["max"])
         )
         path = out_dir / f"query_{i:03d}.jsonl"
         n = write_jsonl(path, records)

@@ -132,14 +132,15 @@ def build_celestial_objects(raw_root: Path, con: duckdb.DuckDBPyConnection) -> p
             pl_eqt           AS equilibrium_temp_k,
             discoverymethod  AS discovery_method,
             st_spectype      AS stellar_type,
-            pl_refname       AS reference,
-            CAST(rowupdate AS VARCHAR) AS catalog_updated,
+            disc_refname     AS reference,
+            CAST(pl_pubdate AS VARCHAR) AS catalog_updated,
             'NASA_Exoplanet_Archive'   AS source,
             ''               AS query_version
-        FROM read_csv_auto(?, header=true)
+        FROM read_csv(?, header=true, delim=',', quote='"', escape='"',
+                      strict_mode=false, sample_size=-1, max_line_size=10000000)
         """,
         [latest],
-    ).arrow().cast(schemas.CELESTIAL_OBJECTS)
+    ).fetch_arrow_table().cast(schemas.CELESTIAL_OBJECTS)
 
 
 def build_observations(raw_root: Path) -> pa.Table:

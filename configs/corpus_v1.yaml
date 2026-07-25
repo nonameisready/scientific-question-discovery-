@@ -57,8 +57,8 @@ catalogs:
       - pl_eqt
       - discoverymethod
       - st_spectype
-      - pl_refname
-      - rowupdate
+      - disc_refname
+      - pl_pubdate
       # uncertainty columns (err1/err2) are retained for all numeric fields
 
 observations:
