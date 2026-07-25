@@ -68,9 +68,14 @@ def _norm(text: str | None) -> str:
     return " ".join((text or "").lower().split())
 
 
-def _compact(name: str) -> str:
-    """'WASP-39 b' -> 'wasp-39b' for whitespace-insensitive matching."""
-    return name.lower().replace(" ", "")
+def _name_pattern(name: str) -> re.Pattern | None:
+    """Regex matching an object name in normalized text, tolerant of
+    space/hyphen variants ('WASP-39 b' matches 'wasp-39b', 'wasp 39 b',
+    'wasp-39 b') and anchored so 'WASP-1' never fires inside 'WASP-12b'."""
+    tokens = [t for t in re.split(r"[\s-]+", name.lower()) if t]
+    if len("".join(tokens)) < 5:
+        return None
+    return re.compile(r"[\s-]?".join(map(re.escape, tokens)) + r"(?![a-z0-9])")
 
 
 def load_inputs(data_root: Path):
@@ -98,23 +103,26 @@ def match_targets(papers, objects) -> dict[str, list[tuple[str, str]]]:
     """Map paper_id -> [(canonical planet name, matched_via)] via name
     matching in title+abstract. Host-star matches attribute the mention to
     the star's planets' host, recorded once per planet name."""
-    def pattern(compact: str) -> re.Pattern:
-        # boundary lookahead so 'wasp-1' does not match inside 'wasp-12b'
-        return re.compile(re.escape(compact) + r"(?![a-z0-9])")
-
-    planet_index = [
-        (o["object_name"], pattern(_compact(o["object_name"]))) for o in objects
-        if len(_compact(o["object_name"])) >= 5
-    ]
-    host_index: dict[str, list[str]] = defaultdict(list)
+    planet_index = []
     for o in objects:
-        if o["host_star"] and len(_compact(o["host_star"])) >= 5:
-            host_index[_compact(o["host_star"])].append(o["object_name"])
-    host_patterns = {host: pattern(host) for host in host_index}
+        regex = _name_pattern(o["object_name"])
+        if regex is not None:
+            planet_index.append((o["object_name"], regex))
+
+    host_index: dict[str, list[str]] = defaultdict(list)
+    host_patterns: dict[str, re.Pattern] = {}
+    for o in objects:
+        host = o["host_star"]
+        if not host:
+            continue
+        regex = _name_pattern(host)
+        if regex is not None:
+            host_index[host].append(o["object_name"])
+            host_patterns[host] = regex
 
     hits: dict[str, list[tuple[str, str]]] = {}
     for paper in papers:
-        text = _compact(f'{paper["title"] or ""} {paper["abstract"] or ""}')
+        text = _norm(f'{paper["title"] or ""} {paper["abstract"] or ""}')
         found: dict[str, str] = {}
         for name, regex in planet_index:
             if regex.search(text):
