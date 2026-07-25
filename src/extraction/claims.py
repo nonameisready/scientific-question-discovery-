@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import uuid
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
@@ -40,6 +41,9 @@ class Claim:
     location: SourceLocation = field(default_factory=SourceLocation)
     extraction_method: str = "human"
     human_verified: bool = False
+    verification_status: str = "human_gold"
+    confidence: float = 1.0
+    provenance: list[str] = field(default_factory=list)
     claim_id: str = field(default_factory=lambda: f"claim_{uuid.uuid4().hex[:12]}")
 
     def to_row(self) -> dict:
@@ -47,6 +51,20 @@ class Claim:
         loc = row.pop("location")
         row.update(loc)
         return row
+
+
+NEGATION_PATTERN = re.compile(
+    r"\b(no|not|non-detection|nondetection|rules?\s+out|ruled\s+out|absence|"
+    r"without|lack(?:s|ing)?|cannot|fails?\s+to|inconsistent\s+with)\b",
+    re.IGNORECASE,
+)
+
+
+def claim_polarity(claim_text: str) -> bool:
+    """True if the claim asserts a negative/absence result. Used by the
+    dedup matcher (same polarity required) and tension ranking (opposite
+    polarity is a conflict signal)."""
+    return bool(NEGATION_PATTERN.search(claim_text))
 
 
 EXTRACTION_PROMPT = """\

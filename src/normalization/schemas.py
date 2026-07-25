@@ -110,6 +110,14 @@ CLAIMS = pa.schema(
         ("end_offset", pa.int64()),
         ("extraction_method", pa.string()),  # human | model:<name>
         ("human_verified", pa.bool_()),
+        # Provenance tiers set at merge time (see extraction/merge_claims.py):
+        #   human_gold          human annotation, no model duplicate   (1.00)
+        #   model_matched_gold  human + model agree; canonical text is
+        #                       the human's, both provenances kept     (1.00)
+        #   model_only          model extraction, unreviewed           (0.75)
+        ("verification_status", pa.string()),
+        ("confidence", pa.float64()),
+        ("provenance", pa.list_(pa.string())),
     ]
 )
 

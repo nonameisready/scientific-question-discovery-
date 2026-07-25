@@ -32,6 +32,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 from src.common import DATA_ROOT, read_jsonl
+from src.extraction.claims import claim_polarity
 from src.evidence_graph.schema import (
     EVIDENCE_EDGES,
     EVIDENCE_NODES,
@@ -115,6 +116,84 @@ def _r4_candidates(claims: list[dict]) -> list[dict]:
     return candidates
 
 
+TRUSTED_STATUSES = ("human_gold", "model_matched_gold")
+
+
+def score_candidate(cand: dict, claim_a: dict, claim_b: dict) -> tuple[float, dict]:
+    """Rank a tension candidate before it may enter question generation.
+
+    Criteria (per the batch 001 review protocol): shared measurable
+    (topic count), opposite conclusion polarity, dataset independence,
+    and gold support on at least one end; claim confidence breaks ties.
+    Shared object is already required by R4 itself.
+    """
+    parts = {
+        "shared_topics": len(cand["topics"]),
+        "opposite_polarity": claim_polarity(claim_a["claim_text"])
+        != claim_polarity(claim_b["claim_text"]),
+        "independent_datasets": bool(
+            (claim_a.get("datasets") and claim_b.get("datasets"))
+            and not (set(claim_a["datasets"]) & set(claim_b["datasets"]))
+        ),
+        "gold_supported": (
+            claim_a.get("verification_status") in TRUSTED_STATUSES
+            or claim_b.get("verification_status") in TRUSTED_STATUSES
+        ),
+    }
+    score = (
+        parts["shared_topics"]
+        + 2.0 * parts["opposite_polarity"]
+        + 1.0 * parts["independent_datasets"]
+        + 2.0 * parts["gold_supported"]
+        + min(claim_a.get("confidence", 1.0), claim_b.get("confidence", 1.0))
+    )
+    return round(score, 3), parts
+
+
+def write_top_tensions(
+    candidates: list[dict], claims_by_id: dict[str, dict], out_dir: Path, top_k: int = 20
+) -> Path:
+    """Ranked worksheet of the strongest tension candidates for human
+    spot-checking — question generation must not consume unranked,
+    unreviewed candidates wholesale."""
+    scored = []
+    for cand in candidates:
+        a = claims_by_id[cand["claim_id_a"]]
+        b = claims_by_id[cand["claim_id_b"]]
+        score, parts = score_candidate(cand, a, b)
+        scored.append((score, parts, cand, a, b))
+    scored.sort(key=lambda t: -t[0])
+
+    lines = [
+        "# Top Tension Candidates",
+        "",
+        f"Top {min(top_k, len(scored))} of {len(scored)} R4 candidates, ranked by:",
+        "shared topics + opposite polarity (2x) + independent datasets (1x) +",
+        "gold support on either end (2x) + min claim confidence (tiebreak).",
+        "Spot-check before question generation; record verdicts as `relation`",
+        "entries in data/annotations/<batch>/contradictions.jsonl.",
+        "",
+    ]
+    for rank, (score, parts, cand, a, b) in enumerate(scored[:top_k], start=1):
+        status = cand.get("status", "pending")
+        lines += [
+            f"## {rank}. score {score}  [{status}]",
+            "",
+            f"- objects: {', '.join(cand['objects'])}  |  topics: {', '.join(cand['topics'])}",
+            f"- signals: opposite_polarity={parts['opposite_polarity']}, "
+            f"independent_datasets={parts['independent_datasets']}, "
+            f"gold_supported={parts['gold_supported']}",
+            f"- A `{cand['claim_id_a']}` ({a.get('verification_status')}, "
+            f"{cand['paper_a']}): {a['claim_text']}",
+            f"- B `{cand['claim_id_b']}` ({b.get('verification_status')}, "
+            f"{cand['paper_b']}): {b['claim_text']}",
+            "",
+        ]
+    path = out_dir / "top_tensions.md"
+    path.write_text("\n".join(lines), encoding="utf-8")
+    return path
+
+
 def _load_reviews(data_root: Path) -> dict[frozenset, dict]:
     """Human verdicts on candidate pairs, keyed by the claim-ID pair.
 
@@ -172,7 +251,11 @@ def build_graph(data_root: Path = DATA_ROOT) -> tuple[int, int]:
         for claim in claims:
             claim_node = _node(
                 "claim", claim["claim_text"][:120], paper_id=claim["paper_id"],
-                payload={"claim_id": claim["claim_id"]},
+                payload={
+                    "claim_id": claim["claim_id"],
+                    "verification_status": claim.get("verification_status"),
+                    "confidence": claim.get("confidence"),
+                },
             )
             nodes.append(claim_node)
             claim_nodes[claim["claim_id"]] = claim_node["node_id"]
@@ -221,8 +304,16 @@ def build_graph(data_root: Path = DATA_ROOT) -> tuple[int, int]:
                                    "contradicts", basis, "rule:R4-candidate",
                                    confidence=0.3))
             kept += 1
+    reviewed = sum(
+        1 for r in reviews.values()
+        if r.get("relation") or r.get("verdict") == "confirmed"
+    )
     print(f"[graph] R4: {len(candidates)} candidate pairs, {kept} edges "
-          f"({sum(1 for r in reviews.values() if r['verdict']=='confirmed')} confirmed)")
+          f"({reviewed} human-typed)")
+    if candidates:
+        claims_by_id = {c["claim_id"]: c for c in claims}
+        top_path = write_top_tensions(candidates, claims_by_id, out_dir)
+        print(f"[graph] top tensions -> {top_path}")
 
     node_table = (
         pa.Table.from_pylist(nodes, schema=EVIDENCE_NODES) if nodes
