@@ -53,17 +53,27 @@ def conflicting_papers(con: duckdb.DuckDBPyConnection) -> duckdb.DuckDBPyRelatio
 
 
 def conflict_origins(con: duckdb.DuckDBPyConnection) -> duckdb.DuckDBPyRelation:
-    """Q2: classify each contradiction by what the two claims share.
+    """Q2: classify each contradiction by origin.
 
-    Same object + different datasets  -> likely data-driven conflict.
-    Same datasets + different methods -> likely method-driven.
-    Differing assumption sets         -> likely assumption-driven.
+    Human-confirmed edges carry the reviewer's verdict (origin=... in
+    basis) and use it directly. Candidates fall back to the heuristic:
+    same object + different datasets  -> likely data-driven conflict;
+    same datasets + different methods -> likely method-driven;
+    differing assumption sets         -> likely assumption-driven.
     """
     return con.sql(
         """
-        WITH contra AS (
+        WITH human AS (
+            SELECT e.edge_id,
+                   regexp_extract(e.basis, 'origin=([a-z]+)', 1) AS likely_origin,
+                   'human' AS classified_by
+            FROM edges e
+            WHERE e.edge_type = 'contradicts' AND e.created_by = 'human'
+        ),
+        contra AS (
             SELECT e.edge_id, e.from_node AS claim_a, e.to_node AS claim_b
-            FROM edges e WHERE e.edge_type = 'contradicts'
+            FROM edges e
+            WHERE e.edge_type = 'contradicts' AND e.created_by <> 'human'
         ),
         claim_context AS (
             SELECT e.from_node AS claim_id,
@@ -73,13 +83,16 @@ def conflict_origins(con: duckdb.DuckDBPyConnection) -> duckdb.DuckDBPyRelation:
             WHERE e.edge_type IN ('uses_dataset', 'assumes', 'depends_on')
                OR (e.edge_type = 'measures' AND n.node_type = 'object')
         )
+        SELECT * FROM human
+        UNION ALL
         SELECT c.edge_id,
                CASE
                  WHEN NOT shared.datasets    THEN 'data'
                  WHEN NOT shared.methods     THEN 'method'
                  WHEN NOT shared.assumptions THEN 'assumption'
                  ELSE 'unresolved'
-               END AS likely_origin
+               END AS likely_origin,
+               'heuristic' AS classified_by
         FROM contra c
         CROSS JOIN LATERAL (
             SELECT
