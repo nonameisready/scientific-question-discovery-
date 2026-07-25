@@ -1,0 +1,39 @@
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Automated scientific discovery.}
+Systems from early hypothesis-formation programs to contemporary
+``AI scientist'' pipelines aim to automate stages of the research loop.
+Most target hypothesis generation, experiment design, or paper writing
+downstream of an already-chosen question; the selection of \emph{which}
+question deserves the loop is usually left to the human operator or an
+unexamined prompt. \todo{cite: BACON/AM lineage, robot scientist (Adam/Eve),
+recent LLM agent-scientist systems}
+
+\paragraph{Open-ended learning and curiosity.}
+Intrinsic-motivation and novelty-search methods formalize ``interestingness''
+for agents exploring environments. Our setting differs in that the
+environment is the scientific record itself: interestingness must be
+grounded in evidential structure (contradiction, unexplained variance,
+single-source support) rather than state-visitation statistics.
+\todo{cite: intrinsic motivation, novelty search, open-endedness}
+
+\paragraph{LLMs for science.}
+Large language models are increasingly used for literature synthesis,
+claim verification, and research ideation. Ideation studies typically
+evaluate novelty and feasibility by human panels at generation time; our
+historical validation instead scores questions by what the field actually
+did afterwards, which removes the panel's guess about the future from the
+measurement. \todo{cite: scientific claim verification, LLM ideation
+evaluations, LLM-as-judge caveats}
+
+\paragraph{Claim extraction and scientific knowledge graphs.}
+Our evidence graph follows work on typed scientific claim
+representations, with two deliberate departures: every claim carries its
+source location and verification tier, and tension edges between claims
+are typed (\emph{contradicts, qualifies, challenges-method,
+explains-discrepancy, complements, supports}) after a human review pass
+showed that collapsing all tension into ``contradiction'' wrongly
+upgrades limiting conditions into refutations
+(Section~\ref{sec:experiments:tension}). \todo{cite: SciFact, knowledge
+graph construction from literature}

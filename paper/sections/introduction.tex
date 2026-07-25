@@ -1,0 +1,52 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Modern AI systems answer questions with increasing competence, yet the
+scientific enterprise is bottlenecked earlier in the loop: someone must
+notice that a question is worth asking. The historical record of science
+suggests that recognizing a productive question---an unexplained
+discrepancy, a conclusion resting on a single dataset, a methodological
+assumption quietly doing load-bearing work---is a distinct capability from
+answering it, and arguably the rarer one. We take the position that this
+capability, \emph{scientific question discovery}, is a core requirement on
+the path to artificial general intelligence, and that it can be studied
+rigorously today.
+
+Studying question discovery requires discipline that question answering
+does not. An answer can be checked against ground truth; a question's
+value only reveals itself later, through the community's engagement with
+it. This paper contributes a methodology that makes question discovery
+measurable despite that asymmetry:
+
+\begin{enumerate}
+  \item \textbf{A framework} (Section~\ref{sec:framework}) that
+    represents published evidence as provenance-carrying claims, detects
+    and types cross-paper tensions in an evidence graph, refines
+    surviving signals into falsifiable questions, and ranks them with a
+    two-stage protocol that separates scientific priority from execution
+    priority.
+  \item \textbf{A corpus discipline} (Section~\ref{sec:benchmark}) in
+    which every experiment is bound to a manifest that pins queries,
+    versions, and---critically---a time boundary. Data need not live in
+    the repository, but the queries, versions, time boundaries, and
+    processing code that produce it must.
+  \item \textbf{A historical validation protocol}
+    (Section~\ref{sec:benchmark}) that exploits the time boundary:
+    questions are generated from evidence available before a cutoff and
+    judged against the literature published after it, which the system
+    never saw. This prevents the system from peeking at the future and
+    converts question value into a measurable outcome.
+  \item \textbf{An end-to-end instantiation}
+    (Section~\ref{sec:experiments}) on exoplanet atmospheres, chosen
+    because it uniquely combines papers, structured catalogs (NASA
+    Exoplanet Archive), and space-telescope archives (JWST/HST via
+    MAST), allowing the full loop---evidence, questions, falsification,
+    ranking---to run end to end.
+\end{enumerate}
+
+In the historical backtest, every question generated from
+pre-2021 evidence was substantively engaged by the 2021--2026 literature;
+two were answered, including one whose premise the community later
+explicitly refuted---the strongest form of question-discovery success,
+since the system had isolated a published conclusion that was in fact an
+artifact awaiting correction.

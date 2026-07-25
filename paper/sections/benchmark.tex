@@ -1,0 +1,51 @@
+\section{Corpus Discipline and Evaluation Protocol}
+\label{sec:benchmark}
+
+\subsection{Corpus manifests}
+
+Every experiment must know exactly what the system has seen. A
+\emph{corpus manifest} pins the scope, source queries, per-source field
+lists, record caps, selection rules, and---critically---a
+\texttt{cutoff\_date}. Manifests are frozen at collection time and
+referenced by experiments; a change of scope mints a new corpus
+identifier rather than editing a manifest in place. The repository
+commits manifests, collectors, schemas, curation and adjudication
+records, and small samples; bulk data is regenerable from those.
+
+\subsection{Historical validation}
+\label{sec:benchmark:validation}
+
+The cutoff enables a backtest that removes guesswork about the future
+from evaluation:
+
+\begin{enumerate}
+  \item \corpusA{} contains only evidence available up to the cutoff
+    (here 2020-12-31), enforced end to end: literature windows, catalog
+    snapshots, and a contamination guard that filters every normalized
+    table by corpus identifier.
+  \item The full pipeline runs on \corpusA{} to produce ranked
+    questions.
+  \item A \emph{validation corpus} of post-cutoff literature
+    (2021--2026), never seen by the pipeline, is collected under its own
+    manifest. For each ranked question, the most relevant post-cutoff
+    abstracts are retrieved by embedding similarity and a judge
+    classifies the question's fate---\texttt{answered},
+    \texttt{partially\_addressed}, \texttt{posed\_but\_open}, or
+    \texttt{not\_addressed}---citing only retrieved records, and states
+    whether the question's premise was validated, refuted, or left
+    untested.
+\end{enumerate}
+
+A question the community independently posed, answered, or refuted after
+the cutoff is evidence the pipeline surfaces questions worth asking; a
+premise the community later refuted is the strongest success mode, since
+the system isolated a published conclusion that was an artifact awaiting
+correction.
+
+\subsection{Question quality rubric}
+
+Human evaluation shares one rubric with the ranking stage: novelty,
+feasibility, significance, and clarity, with clarity applied as a gate
+(Section~\ref{sec:framework:ranking}). All rubric prompts, gate
+criteria, weights, and per-component scores are committed, making every
+ranking auditable.

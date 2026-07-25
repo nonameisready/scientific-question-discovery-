@@ -1,0 +1,172 @@
+\section{Experiments}
+\label{sec:experiments}
+
+We instantiate the framework on exoplanet atmospheres---specifically,
+atmospheric composition interpretation in transmission spectra,
+cloud/haze degeneracies, and instrument systematics. All numbers below
+are produced by the committed pipeline under the frozen manifest
+\texttt{exoplanet\_atmospheres\_v1} (cutoff 2020-12-31).
+
+\subsection{Corpus construction}
+\label{sec:experiments:corpus}
+
+Table~\ref{tab:corpus} summarizes \corpusA{}. Literature metadata came
+from NASA ADS (primary) and arXiv (supplement) under four topic queries;
+cross-source deduplication by arXiv identifier removed 404 duplicate
+records. A core set of 500 papers was selected by greedy,
+year-stratified optimization over internal citation in-degree, keyword
+coverage, and target diversity (83--84 papers per year, 2015--2020).
+Object mentions were linked to the NASA Exoplanet Archive by
+boundary-anchored name matching tolerant of space/hyphen variants;
+naive substring matching produced systematic false positives
+(``WASP-1'' firing inside ``WASP-12b'') that inflated links by
+$2.3\times$ before the fix.
+
+\begin{table}[t]
+  \centering
+  \caption{\corpusA{} at a glance (manifest
+  \texttt{exoplanet\_atmospheres\_v1}, cutoff 2020-12-31).}
+  \label{tab:corpus}
+  \begin{tabular}{lr}
+    \toprule
+    Literature metadata (deduplicated) & 2{,}512 papers \\
+    \quad from NASA ADS / arXiv & 1{,}639 / 1{,}277 \\
+    Core full-text set & 500 papers \\
+    Citation edges & 51{,}616 \\
+    Catalog objects (NASA Exoplanet Archive) & 6{,}324 planets \\
+    Observation metadata (MAST, JWST+HST spectra) & 306{,}729 records \\
+    Paper--object links & 2{,}364 \\
+    Catalog planets with archival spectra & 553 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Claim extraction: calibration before scale}
+\label{sec:experiments:claims}
+
+A domain reviewer first annotated 20 claim-dense core papers by hand,
+yielding 37 gold claims with source locations, assumptions, and
+uncertainties. Model extraction (from abstracts in this version) was
+then calibrated against the gold set over three prompt revisions:
+the initial prompt over-split coupled measurements, occasionally copied
+first-person phrasing, and preferred easily-copied quantitative results
+over interpretive conclusions (e.g., it captured ``mostly subsolar
+H$_2$O'' across ten hot Jupiters \citep{pinhas2019} but dropped the
+paper's load-bearing interpretation of subsolar oxygen or supersolar
+C/O). The final prompt enforces 2--5 load-bearing claims with a priority
+order (conclusion $>$ interpretation $>$ methodological challenge $>$
+decisive quantity $>$ secondary measurement), merging of coupled
+measurements, normalized third person, and an omission self-check.
+Under it, all reviewer-cited misses were recovered, first-person copying
+fell to zero, and no paper exceeded five claims (mean 3.68 across
+353 claims from 100 papers; 4 methods papers correctly yielded none).
+
+Semantic deduplication against the gold set (same paper, compatible
+objects, same conclusion polarity, embedding cosine $\ge 0.62$) matched
+all 37 gold claims to a model counterpart (similarity 0.63--0.97, median
+0.76), producing a canonical table of 353 claims: 37
+\texttt{model\_matched\_gold} and 316 \texttt{model\_only}.
+
+\subsection{Tension detection and adjudication}
+\label{sec:experiments:tension}
+
+The high-recall candidate rule produced 161 cross-paper tension
+candidates over the canonical claims (807-node, 1{,}237-edge graph).
+The reviewer adjudicated the top-ranked candidates; the resulting
+16 typed verdicts are themselves a finding
+(Table~\ref{tab:adjudication}): only \emph{one} candidate is a genuine
+observational contradiction---the HD~189733~b wind-velocity discrepancy,
+${\sim}8$~km\,s$^{-1}$ from optical sodium \citep{wyttenbach2015} versus
+${\sim}1.7$~km\,s$^{-1}$ from near-infrared CO/H$_2$O
+\citep{brogi2016}. The modal relations are \textit{supports} and
+\textit{complements} (e.g., terminator transmission versus dayside
+emission water results for HD~209458~b probe different geometries and do
+not conflict), followed by \textit{challenges-method} (a 1D-retrieval
+bias result \citep{macdonald2020} limits the interpretation of a water
+abundance \citep{kreidberg2015} without negating the detection). An
+early binary confirm/reject protocol would have discarded most of these
+relationships or, worse, upgraded them to contradictions.
+
+\begin{table}[t]
+  \centering
+  \caption{Human adjudication of the 16 reviewed tension candidates.}
+  \label{tab:adjudication}
+  \begin{tabular}{lr}
+    \toprule
+    supports & 7 \\
+    complements & 4 \\
+    challenges-method & 2 \\
+    qualifies & 1 \\
+    explains-discrepancy & 1 \\
+    contradicts (confirmed observational tension) & 1 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Question generation and two-stage ranking}
+\label{sec:experiments:ranking}
+
+From the prioritized signals (1~confirmed tension, 2~methodological
+challenges, 1~independent qualification, 7~trusted single-dataset
+conclusions), the generator produced 11 candidates; editorial curation
+merged one near-duplicate pair into a question family with two
+sub-questions and rewrote three questions (one had conflated statistical
+significance with physical conditions; one presupposed the tension's
+favored explanation; one was reframed for historical validation). The
+Stage-A gate additionally caught the presupposition defect
+independently. After curation, all 10 questions pass the gate.
+
+Stage-B ranking places the wind-discrepancy question and the terminator-
+heterogeneity family effectively tied at the top (scientific priority
+8.13 each) with opposite execution profiles: the confirmed tension is
+scientifically first-equal but operationally harder (execution priority
+6.9---the needed simultaneous multi-band data may not exist), whereas
+the heterogeneity family is reanalysis-ready against 2{,}643 archival
+HST spectra of WASP-12 (execution 9.1). Significance caps hold the seven
+P4 robustness questions to a 6.6--7.1 band, below both tension-driven
+questions.
+
+\subsection{Historical validation}
+\label{sec:experiments:validation}
+
+The validation corpus contains 1{,}891 unique 2021--2026 papers
+(collected under its own manifest; a contamination guard keeps
+\corpusA{} tables bit-identical before and after collection). Verdicts
+for the 10 ranked questions are summarized in
+Table~\ref{tab:validation}.
+
+\begin{table}[t]
+  \centering
+  \caption{Historical validation: fate of the 10 ranked questions
+  (generated from pre-2021 evidence) in the 2021--2026 literature.}
+  \label{tab:validation}
+  \begin{tabular}{lr}
+    \toprule
+    answered & 2 \\
+    posed but open & 1 \\
+    partially addressed & 7 \\
+    not addressed & 0 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Three outcomes deserve emphasis. First, \textbf{a premise refuted}: the
+question of whether HD~209458~b's strongly subsolar terminator water
+abundance \citep{macdonald2017} is atmospheric reality or retrieval
+artifact was answered by 2025 reanalyses using independent retrieval
+frameworks with improved systematics treatment, which find
+solar-consistent water---the pipeline had isolated a published
+conclusion that was in fact an artifact awaiting correction. Second,
+\textbf{the top question is independently posed and open}: the
+terminator-heterogeneity family is actively pursued by the community
+without resolution. Third, \textbf{the reframed historical-validation
+case behaves as designed}: JWST/NIRSpec PRISM programs are testing the
+pre-launch TRAPPIST-1 CO$_2$ detectability prediction
+\citep{lustigyaeger2019}, with stellar contamination \citep{rackham2018}
+currently blocking a decisive verdict---the judge correctly reports the
+premise as untested rather than refuted.
+
+That zero questions were ignored by the subsequent literature is the
+central quantitative result: questions surfaced systematically from
+evidence tensions in pre-2021 knowledge are the questions the field
+subsequently invested in.

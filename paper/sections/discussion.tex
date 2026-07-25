@@ -1,0 +1,57 @@
+\section{Discussion and Limitations}
+\label{sec:discussion}
+
+\paragraph{What the backtest does and does not show.}
+Historical validation measures whether generated questions align with
+where the field actually went---strong evidence of question quality, but
+conservative in one direction: a question the community never engaged
+might still be valuable (the field can be collectively wrong or
+resource-constrained). Conversely, engagement is partially confounded by
+obviousness; a question everyone was about to ask scores well. The
+premise-refuted outcome is the cleanest signal, since it requires the
+system to have flagged a specific published conclusion as fragile before
+the community overturned it. Scaling from 10 questions to hundreds, and
+comparing against baselines (questions sampled from review-paper future
+work sections; questions generated without the evidence graph), is the
+necessary next step before strong claims.
+
+\paragraph{Abstract-only extraction.}
+Claims are currently extracted from abstracts. The calibration review
+showed abstracts carry the load-bearing conclusions, but assumptions and
+uncertainty statements often live in the body; full-text ingestion (with
+the chunk-level source locations the schema already mandates) should
+raise both claim coverage and adjudication quality.
+
+\paragraph{Human adjudication is load-bearing---by design.}
+Tension typing and question curation are human steps, and the reviewed
+sample shows why: only 1 of 16 top candidates was a true contradiction.
+The framework's contribution is to make expert judgment cheap and
+auditable (typed verdicts over ranked candidates, committed as data)
+rather than to eliminate it. Automating adjudication against the growing
+corpus of human verdicts---with the 33\% early-precision figure as the
+baseline to beat---is a measurable follow-on task.
+
+\paragraph{LLM-judge limitations.}
+The clarity dimension initially scored uniformly and was converted to a
+gate; middle-band value scores compress within a few tenths of a point.
+Pairwise-comparison judging and multi-judge panels are the obvious
+remedies. All judge prompts and per-component scores are committed, so
+these comparisons can be run retrospectively.
+
+\paragraph{Single-domain instantiation.}
+Exoplanet atmospheres was chosen because the three evidence layers align
+unusually well. The framework's interfaces (claims, typed tensions,
+signal-prioritized generation, two-stage ranking) are domain-agnostic,
+but the topic vocabulary for tension candidates and the falsification
+screens are domain-supplied; porting to a second domain is the direct
+test of generality.
+
+\paragraph{Implications for AGI research.}
+The results support a specific, testable position: question-asking
+competence can be decomposed into auditable stages---evidence
+representation, tension detection, refinement, prioritization---each of
+which can be measured and improved independently, with historical
+backtesting as the end-to-end score. We suggest that benchmarks of this
+form, rather than open-ended ideation judged by contemporaneous panels,
+are the right instrument for tracking progress on scientific
+question discovery.

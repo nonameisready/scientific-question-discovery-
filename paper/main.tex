@@ -1,0 +1,60 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue!60!black,citecolor=blue!60!black,urlcolor=blue!60!black]{hyperref}
+\usepackage[round]{natbib}
+
+\newcommand{\todo}[1]{\textcolor{red!70!black}{[TODO: #1]}}
+\newcommand{\corpusA}{\textsc{Corpus~A}}
+
+\title{Scientific Question Discovery:\\
+Toward Question-Asking as a Core Capability of AGI}
+
+\author{%
+  \todo{author list}\\
+  \todo{affiliations}
+}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We argue that a key capability on the path to artificial general
+intelligence is not answering questions but \emph{discovering scientific
+questions worth investigating}. We present a framework that turns a
+traceable, reproducible, scope-controlled research corpus into ranked,
+falsifiable research questions: evidence is represented as provenance-carrying
+claims; cross-paper tensions are detected, typed, and human-adjudicated;
+surviving signals are refined into questions and ranked by a two-stage
+protocol separating scientific priority from execution priority. We
+instantiate the framework on exoplanet atmospheres, a domain that uniquely
+combines literature, structured catalogs, and space-telescope archives.
+In a historical backtest, all questions generated from evidence available
+before 2021 were substantively engaged by the 2021--2026 literature the
+system never saw: two were answered---including one whose premise the
+community later explicitly refuted---and the top-ranked question is
+independently posed and still open. These results suggest that systematic
+question discovery from evidence tensions surfaces the questions working
+scientists subsequently invest in.
+\end{abstract}
+
+\input{sections/introduction}
+\input{sections/related_work}
+\input{sections/framework}
+\input{sections/benchmark}
+\input{sections/experiments}
+\input{sections/discussion}
+\input{sections/conclusion}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

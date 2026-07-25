@@ -38,3 +38,6 @@ wandb/
 .DS_Store
 .idea/
 .vscode/
+
+# LaTeX build output (rebuild from source)
+paper/main.pdf

@@ -1,0 +1,114 @@
+\section{Framework}
+\label{sec:framework}
+
+The framework transforms existing scientific knowledge into ranked,
+falsifiable questions through six stages
+(Figure~\ref{fig:architecture}). Throughout, the design principle is
+\emph{traceability}: every artifact carries the provenance needed to
+audit or reproduce it.
+
+\begin{figure}[t]
+  \centering
+  \todo{architecture figure: Existing Scientific Knowledge $\to$
+  Evidence Representation $\to$ Scientific Reasoning Engine
+  (Contradictions / Gaps / Alternative Explanations) $\to$
+  Evidence-based Question Refinement $\to$ Ranked High-value Questions}
+  \caption{Architecture overview. Signals flow from a scope-controlled
+  corpus through claim extraction and a typed evidence graph into
+  question generation, falsification screening, and two-stage ranking.}
+  \label{fig:architecture}
+\end{figure}
+
+\subsection{Evidence representation}
+\label{sec:framework:evidence}
+
+Knowledge enters as three layers, collected in order of increasing cost:
+a \emph{literature} layer (what has been claimed), a \emph{catalog}
+layer (what objects exist, with parameters and uncertainties), and an
+\emph{observation} layer (where the underlying data lives---metadata
+only; data products are fetched on demand after a question is selected).
+Every raw record is stored immutably inside a provenance envelope
+$(\textit{source}, \textit{retrieved-at}, \textit{query-version},
+\textit{source-id}, \textit{payload})$, then normalized into relational
+tables.
+
+The atomic unit is the \textbf{claim}: a tuple
+\[
+c = (\textit{text},\ \textit{evidence},\ \textit{assumptions},\
+     \textit{uncertainty},\ \textit{objects},\ \textit{datasets},\
+     \textit{location},\ \textit{tier})
+\]
+where \textit{location} points back into the source document and
+\textit{tier} records the verification provenance:
+\texttt{human\_gold} (annotated by a domain reviewer),
+\texttt{model\_matched\_gold} (model extraction semantically matching a
+gold claim; the canonical text remains the human's, both provenances are
+kept), or \texttt{model\_only} (unreviewed model extraction, default
+confidence 0.75). Model claims that duplicate gold claims are absorbed
+into a single canonical node rather than added as siblings---duplicate
+nodes would both inflate the graph and manufacture spurious tension.
+
+\subsection{Evidence graph and typed tensions}
+\label{sec:framework:graph}
+
+Claims, objects, datasets, and assumptions become nodes; deterministic
+rules add edges (\textit{uses-dataset}, \textit{measures},
+\textit{assumes}), each recording the rule that created it. Cross-paper
+claim pairs that share an object \emph{and} a topic term become
+\emph{tension candidates}---deliberately a weak, high-recall rule. The
+key representational commitment is that candidate tensions are
+\textbf{typed by human adjudication} before they may drive question
+generation, using the vocabulary
+\[
+\{\textit{contradicts},\ \textit{qualifies},\
+  \textit{challenges-method},\ \textit{explains-discrepancy},\
+  \textit{complements},\ \textit{supports}\}.
+\]
+This vocabulary is an empirical result of the calibration review
+(Section~\ref{sec:experiments:tension}): most high-scoring candidates
+are not contradictions, and a graph that collapses ``adds limiting
+conditions'' into ``negates'' will amplify false conflicts as it grows.
+
+\subsection{Question generation}
+\label{sec:framework:questions}
+
+Questions are generated only from prioritized signal classes:
+(P1) human-confirmed observational tensions, (P2) methodological
+challenges, (P3) qualifications across independent datasets, and
+(P4) single-dataset conclusions from trusted claims. Unreviewed tension
+candidates are excluded by design. Signal assembly is deterministic;
+a language model only phrases the question, and every candidate carries
+its evidence trail (claim identifiers, papers, adjudication basis) plus
+an archival-data availability count---the first falsification screen.
+Human editorial decisions (merges into question families, rewrites,
+rejections) are recorded as committed curation records and re-applied
+deterministically.
+
+\subsection{Two-stage ranking}
+\label{sec:framework:ranking}
+
+Stage~A is a quality gate: evidence grounding plus a six-criterion
+clarity rubric (presupposed conclusions, statistics/physics conflation,
+explicit comparison, falsifiable outcome, bounded scope, stateable
+failure condition). Clarity gates rather than scores---in calibration it
+scored uniformly and only added a constant. Human-curated questions
+bypass the model gate, whose verdict is retained as advisory.
+
+Stage~B ranks survivors by
+\[
+\textit{scientific priority} =
+0.35\,S + 0.25\,T + 0.20\,F + 0.10\,N + 0.10\,G,
+\]
+where $S$ (significance) is judged by a model but hard-capped by signal
+tier (P1:~10, P2:~9, P3:~8.5, P4:~7.5) so that single-dataset robustness
+checks cannot rank beside confirmed tensions; $T$ (tension strength) is
+structural; $F$ (feasibility) averages judged subcomponents
+(availability of the \emph{right} data rather than raw record counts,
+data independence, analysis readiness, reanalysis sufficiency);
+$N$ (novelty) is deliberately down-weighted---the system generates
+questions from existing evidence tensions, so surface novelty is not the
+point---and blends a judge with a corpus-similarity check; $G$ is
+expected information gain. \emph{Execution priority} (feasibility) is
+reported separately: abundant archives must not outrank a confirmed
+cross-instrument tension, and a question can be scientifically first
+while operationally harder.
