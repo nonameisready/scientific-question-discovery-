@@ -159,7 +159,7 @@ def labeled_tensions(con: duckdb.DuckDBPyConnection) -> duckdb.DuckDBPyRelation:
         JOIN nodes b ON e.to_node   = b.node_id
         WHERE e.created_by = 'human'
           AND e.edge_type IN ('contradicts', 'qualifies', 'challenges_method',
-                              'explains_discrepancy', 'supports')
+                              'explains_discrepancy', 'complements', 'supports')
         ORDER BY e.edge_type, paper_a
         """
     )

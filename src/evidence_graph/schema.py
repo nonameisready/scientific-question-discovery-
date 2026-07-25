@@ -21,6 +21,8 @@ EDGE_TYPES = (
     "qualifies",              # adds limiting conditions to the earlier result
     "challenges_method",      # disputes the methodology, not the observation
     "explains_discrepancy",   # offers a mechanism reconciling a tension
+    "complements",            # different geometry/observable; both can hold
+                              # (e.g. terminator transmission vs dayside emission)
     "measures",
     "depends_on",
     "uses_dataset",
@@ -39,6 +41,7 @@ TENSION_RELATIONS = (
     "qualifies",
     "challenges_method",
     "explains_discrepancy",
+    "complements",
     "supports",
 )
 
