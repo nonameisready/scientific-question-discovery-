@@ -56,10 +56,13 @@ def search(
 ) -> Iterator[dict[str, Any]]:
     """Yield parsed arXiv entries for a query within the corpus year window."""
     date_range = f"submittedDate:[{year_min}01010000 TO {year_max}12312359]"
+    # Bare spaces break the arXiv query parser (later clauses get silently
+    # dropped), so every term must carry an explicit field prefix.
+    terms = " AND ".join(f"all:{t}" for t in query.split())
     start = 0
     while start < max_records:
         params = {
-            "search_query": f'all:{query} AND cat:{category} AND {date_range}',
+            "search_query": f'{terms} AND cat:{category} AND {date_range}',
             "start": start,
             "max_results": min(PAGE_SIZE, max_records - start),
             "sortBy": "submittedDate",
