@@ -38,6 +38,12 @@ def _first_arxiv_id(identifiers: list[str] | None) -> str | None:
     return None
 
 
+def _strip_arxiv_version(arxiv_id: str) -> str:
+    """'1401.0022v2' -> '1401.0022' (version suffix varies between sources)."""
+    head, _, tail = arxiv_id.rpartition("v")
+    return head if head and tail.isdigit() else arxiv_id
+
+
 def build_papers(raw_root: Path) -> tuple[pa.Table, pa.Table, pa.Table]:
     """Flatten ADS + arXiv envelopes into papers, authors, paper_citations."""
     papers: list[dict[str, Any]] = []
@@ -77,11 +83,17 @@ def build_papers(raw_root: Path) -> tuple[pa.Table, pa.Table, pa.Table]:
             for cited in doc.get("reference") or []:
                 citations.append({"citing_paper_id": paper_id, "cited_paper_id": cited})
 
+    # Cross-source dedup: ADS records carry their arXiv ID, so an arXiv
+    # record matching one is the same paper under a different identifier.
+    ads_arxiv_ids = {
+        _strip_arxiv_version(p["arxiv_id"]) for p in papers if p["arxiv_id"]
+    }
     for path in sorted(raw_root.glob("literature/arxiv/**/*.jsonl")):
         for rec in read_jsonl(path):
             doc = rec["payload"]
-            paper_id = f"arXiv:{doc['arxiv_id']}"
-            if not doc["arxiv_id"] or paper_id in seen:
+            bare_id = _strip_arxiv_version(doc["arxiv_id"] or "")
+            paper_id = f"arXiv:{bare_id}"
+            if not bare_id or paper_id in seen or bare_id in ads_arxiv_ids:
                 continue
             seen.add(paper_id)
             papers.append(
