@@ -11,6 +11,29 @@ This repository is the research workspace for the paper *Scientific Question Dis
 - Build an evaluation benchmark (`benchmark/`) and datasets (`datasets/`)
 - Write and iterate on the paper (`paper/`)
 
+## Architecture Overview
+
+```
+                Existing Scientific Knowledge
+     (Literature · Observations · Catalogs · Data)
+                            │
+                            ▼
+                   Evidence Representation
+                            │
+                            ▼
+                Scientific Reasoning Engine
+             ┌─────────┬──────────┬─────────┐
+             │         │          │
+      Contradictions  Gaps   Alternative Explanations
+             └─────────┴──────────┘
+                            │
+                            ▼
+              Evidence-based Question Refinement
+                            │
+                            ▼
+         Ranked High-value Scientific Questions
+```
+
 ## Repository Structure
 
 ```
