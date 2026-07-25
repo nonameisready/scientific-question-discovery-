@@ -142,8 +142,17 @@ This is already enough to validate the framework.
 |----------------|-------------------------------------------|-------------|
 | ADS API token  | `ADS_API_TOKEN` env var (free)            | Before literature collection |
 | Tables/queries | DuckDB + Parquet (no server)              | Nothing to provision |
-| Vector index   | PostgreSQL + pgvector                     | Before full-text semantic search |
+| Vector index   | PostgreSQL + pgvector via `PG_DSN` env var | Before full-text semantic search |
 | Graph database | Not yet — plain tables until complex graph queries are truly needed | Deferred |
+
+Secrets are configured through environment variables or a local `.env` file
+(gitignored): copy `.env.example` to `.env` and fill in the values. For the
+vector index, install the extras and verify the connection with:
+
+```bash
+pip install -e ".[vector]"
+python -m src.vector_index.db   # connects, enables pgvector, creates chunks table
+```
 
 ## Citation
 
