@@ -6,10 +6,14 @@ created it via the `basis` field, so every link is auditable):
   R1  claim --uses_dataset--> dataset      (from claims.datasets)
   R2  claim --measures-->     object       (from claims.objects)
   R3  claim --assumes-->      assumption   (from claims.assumptions)
-  R4  Two claims about the same object whose texts are flagged as opposing
-      by a reviewer or model become a *candidate* contradiction edge with
-      created_by='rule:R4-candidate'. Candidates require human confirmation
-      before they count as contradictions in downstream queries.
+  R4  Two claims from different papers about the same object whose texts
+      share a topic term (species/property vocabulary below) become a
+      *candidate* contradiction edge (created_by='rule:R4-candidate',
+      low confidence). Candidates are also written to
+      contradiction_candidates.jsonl for human review; confirmations
+      recorded in data/annotations/*/contradictions.jsonl upgrade them
+      (created_by='human', confidence 1.0, origin recorded in basis) and
+      rejections remove them.
 
 Usage:
     python -m src.evidence_graph.build
@@ -18,20 +22,42 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import itertools
 import json
+import re
 import uuid
 from pathlib import Path
 
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from src.common import DATA_ROOT
+from src.common import DATA_ROOT, read_jsonl
 from src.evidence_graph.schema import (
     EVIDENCE_EDGES,
     EVIDENCE_NODES,
     validate_edge_type,
     validate_node_type,
 )
+
+# Topic vocabulary for R4: two same-object claims must share one of these
+# terms to become a contradiction candidate (same object alone is far too
+# weak a signal). Word-boundary regexes; extend as the corpus grows.
+R4_TOPIC_TERMS = {
+    "water": r"\bwater\b|\bh2o\b",
+    "sodium": r"\bsodium\b|\bna\b",
+    "potassium": r"\bpotassium\b",
+    "carbon monoxide": r"\bcarbon monoxide\b|\bco\b",
+    "carbon dioxide": r"\bcarbon dioxide\b|\bco2\b",
+    "methane": r"\bmethane\b|\bch4\b",
+    "c/o ratio": r"\bc/o\b|carbon-to-oxygen",
+    "clouds": r"\bcloud\w*\b",
+    "haze": r"\bhaze\w*\b",
+    "temperature": r"\btemperature\w*\b|\bthermal\b",
+    "wind": r"\bwind\w*\b",
+    "metallicity": r"\bmetallicit\w+\b",
+    "abundance": r"\babundance\w*\b",
+    "stellar contamination": r"stellar contamination|center-to-limb|centre-to-limb|rossiter",
+}
 
 
 def _node(node_type: str, label: str, paper_id: str = "", payload: dict | None = None) -> dict:
@@ -56,11 +82,57 @@ def _edge(from_node: str, to_node: str, edge_type: str, basis: str, created_by: 
     }
 
 
+def _r4_candidates(claims: list[dict]) -> list[dict]:
+    """Cross-paper same-object claim pairs sharing a topic term."""
+    compiled = {term: re.compile(rx) for term, rx in R4_TOPIC_TERMS.items()}
+    candidates = []
+    for a, b in itertools.combinations(claims, 2):
+        if a["paper_id"] == b["paper_id"]:
+            continue
+        shared_objects = set(a.get("objects") or []) & set(b.get("objects") or [])
+        if not shared_objects:
+            continue
+        text_a = f'{a["claim_text"]} {a["uncertainty"]}'.lower()
+        text_b = f'{b["claim_text"]} {b["uncertainty"]}'.lower()
+        shared_terms = [
+            term for term, rx in compiled.items()
+            if rx.search(text_a) and rx.search(text_b)
+        ]
+        if shared_terms:
+            candidates.append(
+                {
+                    "claim_id_a": a["claim_id"],
+                    "claim_id_b": b["claim_id"],
+                    "paper_a": a["paper_id"],
+                    "paper_b": b["paper_id"],
+                    "objects": sorted(shared_objects),
+                    "topics": shared_terms,
+                    "claim_text_a": a["claim_text"],
+                    "claim_text_b": b["claim_text"],
+                }
+            )
+    return candidates
+
+
+def _load_reviews(data_root: Path) -> dict[frozenset, dict]:
+    """Human verdicts on candidate pairs, keyed by the claim-ID pair.
+
+    Review record format (data/annotations/<batch>/contradictions.jsonl):
+      {"claim_id_a": ..., "claim_id_b": ..., "verdict": "confirmed"|"rejected",
+       "origin": "data"|"method"|"assumption", "note": "..."}
+    """
+    reviews: dict[frozenset, dict] = {}
+    for path in sorted((data_root / "annotations").glob("*/contradictions.jsonl")):
+        for rec in read_jsonl(path):
+            reviews[frozenset((rec["claim_id_a"], rec["claim_id_b"]))] = rec
+    return reviews
+
+
 def build_graph(data_root: Path = DATA_ROOT) -> tuple[int, int]:
     """Build evidence_nodes/evidence_edges from data/normalized/claims.parquet.
 
-    Applies rules R1-R3 automatically. R4 candidates come from a separate
-    review file and are merged in a later pass.
+    Applies R1-R3 automatically, generates R4 contradiction candidates,
+    and merges human verdicts from annotation review files.
     Returns (node_count, edge_count).
     """
     claims_path = data_root / "normalized" / "claims.parquet"
@@ -71,6 +143,7 @@ def build_graph(data_root: Path = DATA_ROOT) -> tuple[int, int]:
     edges: list[dict] = []
     # Shared entity nodes are deduplicated by (type, label).
     entity_index: dict[tuple[str, str], str] = {}
+    claim_nodes: dict[str, str] = {}  # claim_id -> node_id
 
     def entity(node_type: str, label: str) -> str:
         key = (node_type, label)
@@ -80,13 +153,16 @@ def build_graph(data_root: Path = DATA_ROOT) -> tuple[int, int]:
             entity_index[key] = node["node_id"]
         return entity_index[key]
 
+    claims: list[dict] = []
     if claims_path.exists():
-        for claim in pq.read_table(claims_path).to_pylist():
+        claims = pq.read_table(claims_path).to_pylist()
+        for claim in claims:
             claim_node = _node(
                 "claim", claim["claim_text"][:120], paper_id=claim["paper_id"],
                 payload={"claim_id": claim["claim_id"]},
             )
             nodes.append(claim_node)
+            claim_nodes[claim["claim_id"]] = claim_node["node_id"]
             for dataset in claim.get("datasets") or []:
                 edges.append(_edge(claim_node["node_id"], entity("dataset", dataset),
                                    "uses_dataset", "rule:R1", "rule:R1"))
@@ -96,6 +172,39 @@ def build_graph(data_root: Path = DATA_ROOT) -> tuple[int, int]:
             for assumption in claim.get("assumptions") or []:
                 edges.append(_edge(claim_node["node_id"], entity("assumption", assumption),
                                    "assumes", "rule:R3", "rule:R3"))
+
+    # R4: contradiction candidates + human verdicts
+    candidates = _r4_candidates(claims)
+    reviews = _load_reviews(data_root)
+    kept = 0
+    with open(out_dir / "contradiction_candidates.jsonl", "w", encoding="utf-8") as f:
+        for cand in candidates:
+            key = frozenset((cand["claim_id_a"], cand["claim_id_b"]))
+            review = reviews.get(key)
+            cand["status"] = review["verdict"] if review else "pending"
+            f.write(json.dumps(cand, ensure_ascii=False) + "\n")
+            if review and review["verdict"] == "rejected":
+                continue
+            if review and review["verdict"] == "confirmed":
+                basis = (
+                    f"origin={review.get('origin', 'unresolved')}; "
+                    f"{review.get('note', '')}".strip()
+                )
+                edges.append(_edge(claim_nodes[cand["claim_id_a"]],
+                                   claim_nodes[cand["claim_id_b"]],
+                                   "contradicts", basis, "human", confidence=1.0))
+            else:
+                basis = (
+                    f"candidate: shared object {cand['objects']} "
+                    f"+ topics {cand['topics']} — needs human review"
+                )
+                edges.append(_edge(claim_nodes[cand["claim_id_a"]],
+                                   claim_nodes[cand["claim_id_b"]],
+                                   "contradicts", basis, "rule:R4-candidate",
+                                   confidence=0.3))
+            kept += 1
+    print(f"[graph] R4: {len(candidates)} candidate pairs, {kept} edges "
+          f"({sum(1 for r in reviews.values() if r['verdict']=='confirmed')} confirmed)")
 
     node_table = (
         pa.Table.from_pylist(nodes, schema=EVIDENCE_NODES) if nodes

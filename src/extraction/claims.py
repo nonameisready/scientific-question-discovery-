@@ -7,6 +7,7 @@ uncertainty — and exactly where in the document it came from.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import uuid
 from dataclasses import dataclass, field, asdict
@@ -94,8 +95,16 @@ def write_claims(claims: list[Claim], out_path: str | Path) -> int:
     return table.num_rows
 
 
+def deterministic_claim_id(paper_id: str, claim_text: str) -> str:
+    """Stable content-derived ID so review files (e.g. contradiction
+    confirmations) can reference claims across re-ingestions."""
+    digest = hashlib.sha1(f"{paper_id}\x1f{claim_text}".encode()).hexdigest()
+    return f"claim_{digest[:12]}"
+
+
 def load_claims_jsonl(path: str | Path) -> list[Claim]:
-    """Load manually-authored claims from a JSONL review file."""
+    """Load manually-authored claims from a JSONL review file. Records
+    without an explicit claim_id get a deterministic content-derived one."""
     claims = []
     with open(path, encoding="utf-8") as f:
         for line in f:
@@ -103,5 +112,8 @@ def load_claims_jsonl(path: str | Path) -> list[Claim]:
                 continue
             data = json.loads(line)
             loc = SourceLocation(**data.pop("location", {}))
+            data.setdefault(
+                "claim_id", deterministic_claim_id(data["paper_id"], data["claim_text"])
+            )
             claims.append(Claim(location=loc, **data))
     return claims

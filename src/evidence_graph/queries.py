@@ -33,18 +33,21 @@ def _connect(data_root: Path) -> duckdb.DuckDBPyConnection:
 
 
 def conflicting_papers(con: duckdb.DuckDBPyConnection) -> duckdb.DuckDBPyRelation:
-    """Q1: pairs of papers linked by a confirmed `contradicts` edge."""
+    """Q1: paper pairs linked by `contradicts` edges. `status` separates
+    human-confirmed conflicts from R4 candidates awaiting review."""
     return con.sql(
         """
         SELECT DISTINCT a.paper_id AS paper_a, b.paper_id AS paper_b,
-               e.basis, e.confidence
+               CASE WHEN e.created_by = 'human' THEN 'confirmed'
+                    ELSE 'candidate' END AS status,
+               e.basis
         FROM edges e
         JOIN nodes a ON e.from_node = a.node_id
         JOIN nodes b ON e.to_node   = b.node_id
         WHERE e.edge_type = 'contradicts'
           AND a.paper_id <> '' AND b.paper_id <> ''
           AND a.paper_id <> b.paper_id
-        ORDER BY paper_a, paper_b
+        ORDER BY status, paper_a, paper_b
         """
     )
 
