@@ -1,15 +1,15 @@
-# datasets/ — 数据集
+# datasets/ — Datasets
 
-数据集及其构建脚本与说明文档。
+Datasets, construction scripts, and documentation.
 
-## 规划内容
+## Planned Contents
 
-- 科学文献语料（用于问题发现的输入背景）
-- 已知"好问题"标注集（用于评估与对齐评分标准）
-- 数据构建与清洗脚本
+- Scientific literature corpora (input background for question discovery)
+- Annotated sets of known "good questions" (for evaluation and rubric calibration)
+- Data construction and cleaning scripts
 
-## 约定
+## Conventions
 
-- 大文件不直接入库：提供下载脚本或链接，必要时使用 Git LFS
-- 每个数据集附带说明文档：来源、许可证、规模、字段含义、构建方法
-- 注意数据污染问题：记录数据的时间截点，便于与模型训练截止时间对照
+- No large files committed directly: provide download scripts or links, and use Git LFS when necessary
+- Each dataset ships with documentation: source, license, size, field descriptions, construction method
+- Watch for data contamination: record data cutoff dates so they can be compared against model training cutoffs

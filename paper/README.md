@@ -1,13 +1,13 @@
-# paper/ — 论文
+# paper/ — Manuscript
 
-存放论文相关的所有材料：
+All materials related to the paper:
 
-- `outline.md` — 论文大纲与思路笔记
-- `main.tex` — LaTeX 主文件（待创建）
-- `sections/` — 各章节源文件（待创建）
-- `references.bib` — 参考文献库（待创建）
+- `outline.md` — Paper outline and idea notes
+- `main.tex` — Main LaTeX file (to be created)
+- `sections/` — Section source files (to be created)
+- `references.bib` — Bibliography (to be created)
 
-## 写作约定
+## Writing Conventions
 
-- 图表统一引用仓库根目录的 `figures/`
-- 每次重大修改前先更新 `outline.md`，保持思路与正文同步
+- All figures are referenced from the repository-level `figures/` directory
+- Update `outline.md` before any major revision to keep the outline and manuscript in sync

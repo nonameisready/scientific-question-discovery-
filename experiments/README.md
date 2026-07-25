@@ -1,15 +1,15 @@
-# experiments/ — 实验
+# experiments/ — Experiments
 
-实验代码、配置与结果记录。
+Experiment code, configurations, and results.
 
-## 规划内容
+## Planned Contents
 
-- 主实验：不同方法在 benchmark 上的问题发现能力对比
-- 消融实验：框架各组件（新颖性度量、价值函数等）的贡献
-- 案例分析：生成的科学问题的人工评估
+- Main experiments: comparing question discovery capability across methods on the benchmark
+- Ablation studies: contribution of each framework component (novelty metrics, value function, etc.)
+- Case studies: human evaluation of generated scientific questions
 
-## 约定
+## Conventions
 
-- 每个实验一个子目录，包含 `config`、`run` 脚本和 `results/`
-- 实验结果中的图表输出到根目录 `figures/`
-- 保证可复现：固定随机种子，记录模型版本与超参数
+- One subdirectory per experiment, containing `config`, `run` scripts, and `results/`
+- Figures produced by experiments are written to the repository-level `figures/` directory
+- Reproducibility: fix random seeds, record model versions and hyperparameters

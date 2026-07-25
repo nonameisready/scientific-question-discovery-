@@ -1,51 +1,51 @@
-# Scientific Question Discovery（科学问题发现）
+# Scientific Question Discovery
 
-> 面向 AGI 的科学问题自动发现研究 —— 探索智能体如何像科学家一样提出好问题。
+> Research on automated scientific question discovery toward AGI — exploring how intelligent agents can ask good questions like scientists do.
 
-## 项目简介
+## Overview
 
-本仓库是论文《Scientific Question Discovery》的研究工作区。我们认为，通往 AGI 的关键能力之一不是回答问题，而是**发现值得研究的科学问题**。本项目围绕这一核心思路展开：
+This repository is the research workspace for the paper *Scientific Question Discovery*. We argue that one of the key capabilities on the path to AGI is not answering questions, but **discovering scientific questions worth investigating**. This project is organized around that core idea:
 
-- 提出一个科学问题发现的形式化框架（framework）
-- 设计可复现的实验（experiments）
-- 构建评测基准（benchmark）与数据集（datasets）
-- 撰写并迭代论文（paper）
+- Propose a formal framework for scientific question discovery (`framework/`)
+- Design reproducible experiments (`experiments/`)
+- Build an evaluation benchmark (`benchmark/`) and datasets (`datasets/`)
+- Write and iterate on the paper (`paper/`)
 
-## 仓库结构
+## Repository Structure
 
 ```
 scientific-question-discovery/
-├── README.md          # 项目说明（本文件）
-├── paper/             # 论文正文、LaTeX 源码、参考文献
-├── framework/         # 核心框架：问题发现的形式化定义与方法实现
-├── experiments/       # 实验代码、配置与结果
-├── benchmark/         # 评测基准：任务定义、评分标准、baseline
-├── datasets/          # 数据集及其构建脚本、说明文档
-├── figures/           # 论文与实验用图
-└── LICENSE            # 开源许可证（MIT）
+├── README.md          # Project overview (this file)
+├── paper/             # Paper manuscript, LaTeX sources, references
+├── framework/         # Core framework: formal definitions and method implementations
+├── experiments/       # Experiment code, configs, and results
+├── benchmark/         # Evaluation benchmark: task definitions, rubrics, baselines
+├── datasets/          # Datasets, construction scripts, and documentation
+├── figures/           # Figures for the paper and experiments
+└── LICENSE            # Open-source license (MIT)
 ```
 
-## 研究路线（Roadmap）
+## Roadmap
 
-- [ ] 明确研究问题与相关工作综述（paper/outline.md）
-- [ ] 定义科学问题发现的形式化框架
-- [ ] 构建数据集与评测基准
-- [ ] 完成核心实验与消融实验
-- [ ] 撰写论文初稿并迭代
+- [ ] Define the research question and survey related work (`paper/outline.md`)
+- [ ] Formalize the scientific question discovery framework
+- [ ] Build the datasets and evaluation benchmark
+- [ ] Run core experiments and ablation studies
+- [ ] Write the first draft of the paper and iterate
 
-## 快速开始
+## Getting Started
 
 ```bash
 git clone <repo-url>
 cd scientific-question-discovery
 ```
 
-各子目录下均有独立的 README 说明其用途与使用方式。
+Each subdirectory contains its own README describing its purpose and conventions.
 
-## 引用
+## Citation
 
-论文完成后将在此处提供 BibTeX 引用格式。
+A BibTeX entry will be provided here once the paper is complete.
 
-## 许可证
+## License
 
-本项目采用 [MIT License](LICENSE)。
+This project is licensed under the [MIT License](LICENSE).

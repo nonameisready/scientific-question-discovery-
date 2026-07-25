@@ -1,18 +1,18 @@
-# framework/ — 核心框架
+# framework/ — Core Framework
 
-科学问题发现的形式化框架与方法实现。
+Formal framework and method implementations for scientific question discovery.
 
-## 规划内容
+## Planned Contents
 
-- 问题空间的形式化定义（问题表示、新颖性度量、价值函数）
-- 问题发现流水线：文献理解 → 空白识别 → 问题生成 → 问题评估
-- 核心算法与模型接口实现
+- Formal definition of the question space (question representation, novelty metrics, value function)
+- Question discovery pipeline: literature understanding → gap identification → question generation → question evaluation
+- Core algorithms and model interface implementations
 
-## 目录约定（随实现逐步建立）
+## Directory Layout (to be built out as implementation progresses)
 
 ```
 framework/
-├── core/          # 形式化定义与数据结构
-├── discovery/     # 问题生成与筛选方法
-└── evaluation/    # 问题质量评估模块
+├── core/          # Formal definitions and data structures
+├── discovery/     # Question generation and filtering methods
+└── evaluation/    # Question quality assessment modules
 ```
