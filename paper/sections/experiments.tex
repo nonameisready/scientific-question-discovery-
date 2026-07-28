@@ -116,36 +116,57 @@ favored explanation; one was reframed for historical validation). The
 Stage-A gate additionally caught the presupposition defect
 independently. After curation, all 10 questions pass the gate.
 
-Stage-B ranking places the wind-discrepancy question and the terminator-
-heterogeneity family effectively tied at the top (scientific priority
-8.13 each) with opposite execution profiles: the confirmed tension is
-scientifically first-equal but operationally harder (execution priority
-6.9---the needed simultaneous multi-band data may not exist), whereas
-the heterogeneity family is reanalysis-ready against 2{,}643 archival
-HST spectra of WASP-12 (execution 9.1). Significance caps hold the seven
-P4 robustness questions to a 6.6--7.1 band, below both tension-driven
-questions.
+Stage-B ranking places the terminator-heterogeneity family and the
+wind-discrepancy question statistically tied at the top (scientific
+priority 8.13 vs.\ 8.13, separated by 0.005) with opposite execution
+profiles: the heterogeneity family is reanalysis-ready against 2{,}643
+archival HST spectra of WASP-12 (execution priority 9.1), whereas the
+confirmed tension is scientifically first-equal but operationally
+harder (execution 6.9---the needed simultaneous multi-band data may not
+exist). Significance caps hold the seven P4 robustness questions to a
+6.6--7.1 band, below both tension-driven questions.
 
 \subsection{Historical validation}
 \label{sec:experiments:validation}
 
 The validation corpus contains 1{,}891 unique 2021--2026 papers
 (collected under its own manifest; a contamination guard keeps
-\corpusA{} tables bit-identical before and after collection). Verdicts
-for the 10 ranked questions are summarized in
-Table~\ref{tab:validation}.
+\corpusA{} tables bit-identical before and after collection).
+Table~\ref{tab:validation} lists all ten questions with their verdicts:
+2 answered, 1 posed but open, 7 partially addressed, 0 not addressed.
 
 \begin{table}[t]
   \centering
-  \caption{Historical validation: fate of the 10 ranked questions
-  (generated from pre-2021 evidence) in the 2021--2026 literature.}
+  \caption{Historical validation of all ten ranked questions (generated
+  from pre-2021 evidence, judged against 2021--2026 literature).
+  Premise: whether the post-cutoff literature validated, refuted, or
+  left untested the evidential premise behind the question.}
   \label{tab:validation}
-  \begin{tabular}{lr}
+  \small
+  \begin{tabular}{clp{7.6cm}ll}
     \toprule
-    answered & 2 \\
-    posed but open & 1 \\
-    partially addressed & 7 \\
-    not addressed & 0 \\
+    Rank & ID & Question (abridged) & Verdict & Premise \\
+    \midrule
+    1 & q\_002 & WASP-12\,b: terminator heterogeneity vs.\ water
+        evidence, abundance, C/O & posed, open & untested \\
+    2 & q\_001 & HD~189733\,b: cause of factor-of-five wind
+        discrepancy (Na vs.\ CO/H$_2$O) & partial & validated \\
+    3 & q\_004 & HD~189733\,b: conditions for subsolar H$_2$O with
+        robust CO & partial & validated \\
+    4 & q\_008 & HD~209458\,b: subsolar water---atmospheric reality or
+        retrieval artifact? & \textbf{answered} & \textbf{refuted} \\
+    5 & q\_007 & Patchy-cloud solar-composition models under
+        independent retrievals \& data & partial & untested \\
+    6 & q\_010 & WASP-121\,b: water detection sensitivity to clouds,
+        contamination, priors, null model & partial & untested \\
+    7 & q\_005 & HD~209458\,b: independent support for NH$_3$/HCN
+        across cloud scenarios & \textbf{answered} & validated \\
+    8 & q\_009 & Conditions for patchy-cloud fits without high mean
+        molecular weight & partial & validated \\
+    9 & q\_006 & WASP-12\,b: does C/O~$>$~1 exclusion survive without
+        equilibrium chemistry? & partial & untested \\
+    10 & q\_011 & TRAPPIST-1: have JWST observations validated
+        pre-launch CO$_2$ detectability predictions? & partial & untested \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -170,3 +191,47 @@ That zero questions were ignored by the subsequent literature is the
 central quantitative result: questions surfaced systematically from
 evidence tensions in pre-2021 knowledge are the questions the field
 subsequently invested in.
+
+\subsection{Failure analysis}
+\label{sec:experiments:failures}
+
+The seven \emph{partial} verdicts are not one failure mode but three,
+and each points at a specific pipeline improvement.
+
+\paragraph{Blocked by a shared upstream obstacle.}
+For the TRAPPIST-1 prediction test (rank 10) and the M-dwarf-adjacent
+cloud questions (rank 5), the post-cutoff literature engaged exactly the
+right test but could not reach a verdict because \emph{stellar
+contamination} limits the achievable precision. Notably, the pipeline's
+own corpus contained the warning \citep{rackham2018}: had the
+falsification screen consulted the evidence graph for known
+systematics on the target's host star, these questions could have been
+generated with the obstacle named and a contamination-robust test
+demanded. Failure source: the falsification stage checks data
+\emph{availability} but not data \emph{sufficiency}.
+
+\paragraph{Questions demanding joint analyses no single study performs.}
+The wind-discrepancy question (rank 2) needs contemporaneous
+optical--near-infrared spectroscopy; the subsolar-H$_2$O-with-CO
+question (rank 3) needs both species constrained in one dataset. The
+community advanced each piece separately. These questions are well
+posed but implicitly assume a coordinated analysis; an execution-aware
+refinement step could split them into staged sub-questions the way the
+curated rank-1 family already is.
+
+\paragraph{Questions broader than any single study answers.}
+The class-level conditions question (rank 8) and the five-factor
+sensitivity question (rank 6) span parameter spaces the literature
+answers instance by instance. The clarity gate checks that scope is
+\emph{bounded}, not that it matches the granularity at which the field
+publishes; a granularity criterion would have flagged both.
+
+\paragraph{Why zero \emph{not-addressed}.}
+Beyond genuine question quality, two selection effects contribute:
+tensions among highly-cited claims concern targets the community
+already observes intensively, and the validation corpus was collected
+with target-specific queries that guarantee topical coverage. The
+baseline experiments proposed in Section~\ref{sec:discussion} (random
+future-work questions; graph-free LLM questions over the same corpus)
+are designed to measure exactly how much of the engagement rate these
+effects explain.

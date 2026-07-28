@@ -9,13 +9,52 @@ audit or reproduce it.
 
 \begin{figure}[t]
   \centering
-  \todo{architecture figure: Existing Scientific Knowledge $\to$
-  Evidence Representation $\to$ Scientific Reasoning Engine
-  (Contradictions / Gaps / Alternative Explanations) $\to$
-  Evidence-based Question Refinement $\to$ Ranked High-value Questions}
-  \caption{Architecture overview. Signals flow from a scope-controlled
-  corpus through claim extraction and a typed evidence graph into
-  question generation, falsification screening, and two-stage ranking.}
+  \begin{tikzpicture}[
+    font=\small,
+    box/.style={rectangle, rounded corners=2pt, draw=black!55, align=center,
+                minimum width=3.6cm, minimum height=0.66cm, inner sep=3pt},
+    pipe/.style={box, fill=blue!10},
+    human/.style={box, fill=orange!18},
+    arr/.style={-{Stealth[length=2.2mm]}, semithick, black!65},
+    duo/.style={{Stealth[length=2.2mm]}-{Stealth[length=2.2mm]}, semithick, black!65},
+    node distance=0.34cm
+  ]
+    \node[pipe] (lit) {Scientific Literature};
+    \node[pipe, below=of lit] (claims) {Claims};
+    \node[pipe, below=of claims] (graph) {Evidence Graph};
+    \node[pipe, below=of graph] (tension) {Typed Tensions};
+    \node[pipe, below=of tension] (fam) {Question Families};
+    \node[pipe, below=of fam] (refine) {Question Refinement};
+    \node[pipe, below=of refine] (rank) {Two-stage Ranking};
+    \node[pipe, below=of rank] (back) {Historical Backtesting};
+
+    \node[human, right=2.2cm of graph] (review) {Human Review};
+    \node[human, right=2.2cm of tension] (adjud) {Typed Tension\\Adjudication};
+    \node[human, right=2.2cm of refine] (curate) {Question Curation};
+    \node[human, right=2.2cm of back] (valid) {Historical Validation};
+
+    \foreach \a/\b in {lit/claims, claims/graph, graph/tension,
+                       tension/fam, fam/refine, refine/rank, rank/back}
+      \draw[arr] (\a) -- (\b);
+    \draw[arr] (review) -- (adjud);
+    \draw[arr] (adjud) -- (curate);
+    \draw[arr] (curate) -- (valid);
+
+    \draw[duo] (tension) -- (adjud);
+    \draw[duo] (refine) -- (curate);
+    \draw[duo] (back) -- (valid);
+    \draw[arr] (review.west) -- (graph.east);
+    \draw[arr, dashed] (valid.east) to[bend right=70, looseness=1.4]
+      node[right=3pt, pos=0.5, align=left, font=\scriptsize\itshape]
+      {verdicts become\\graph edges}
+      (review.east);
+  \end{tikzpicture}
+  \caption{Architecture: a dual loop. The automated pipeline (left,
+  blue) turns a time-frozen corpus into ranked questions; the human loop
+  (right, amber) adjudicates tension types, curates question phrasing,
+  and validates outcomes. Human verdicts are committed as data and feed
+  back into the evidence graph, keeping expert judgment cheap,
+  auditable, and reusable.}
   \label{fig:architecture}
 \end{figure}
 
@@ -68,6 +107,55 @@ This vocabulary is an empirical result of the calibration review
 (Section~\ref{sec:experiments:tension}): most high-scoring candidates
 are not contradictions, and a graph that collapses ``adds limiting
 conditions'' into ``negates'' will amplify false conflicts as it grows.
+Figure~\ref{fig:graph-example} shows the instantiation of this
+machinery on the one confirmed contradiction in our corpus.
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+    font=\small,
+    box/.style={rectangle, rounded corners=2pt, draw=black!55, align=center,
+                inner sep=4pt},
+    paper/.style={box, fill=black!6, minimum width=3.4cm},
+    claim/.style={box, fill=blue!10, text width=4.6cm},
+    entity/.style={box, fill=green!12},
+    question/.style={box, fill=orange!18, text width=7.6cm},
+    arr/.style={-{Stealth[length=2.2mm]}, semithick, black!65},
+    lab/.style={font=\scriptsize\itshape, fill=white, inner sep=1pt}
+  ]
+    \node[paper] (pA) {Paper A \citep{wyttenbach2015}};
+    \node[paper, right=4.8cm of pA] (pB) {Paper B \citep{brogi2016}};
+    \node[claim, below=0.5cm of pA] (cA)
+      {Claim: sodium lines indicate hot upper layers and a
+       ${\sim}8$~km\,s$^{-1}$ wind blueshift};
+    \node[claim, below=0.5cm of pB] (cB)
+      {Claim: near-infrared CO/H$_2$O indicate a
+       ${\sim}1.7$~km\,s$^{-1}$ day--night wind};
+    \node[entity] (obj) at ($(cA.south)!0.5!(cB.south) + (0,-0.95)$)
+      {object: HD~189733~b};
+    \node[question, below=0.65cm of obj] (q)
+      {Question (rank 2): what causes the factor-of-five wind
+       discrepancy---vertical shear, temporal variability,
+       line formation, or systematics?};
+
+    \draw[arr] (pA) -- (cA);
+    \draw[arr] (pB) -- (cB);
+    \draw[arr] (cA.south) -- node[lab, pos=0.45] {measures} (obj.west);
+    \draw[arr] (cB.south) -- node[lab, pos=0.45] {measures} (obj.east);
+    \draw[arr, very thick, red!60!black] (cA.east) --
+      node[lab, above=3pt, align=center, text=red!60!black]
+      {contradicts\\(human, origin: data)} (cB.west);
+    \draw[arr] (obj) -- (q);
+  \end{tikzpicture}
+  \caption{The evidence graph around the one confirmed contradiction:
+  two claims from different instruments measure the same object,
+  disagree on a shared quantity, survive human adjudication as a
+  genuine data-origin tension, and become the pipeline's top
+  tension-driven question. The 15 other reviewed candidates received
+  non-contradiction types and correspondingly weaker question
+  priority.}
+  \label{fig:graph-example}
+\end{figure}
 
 \subsection{Question generation}
 \label{sec:framework:questions}

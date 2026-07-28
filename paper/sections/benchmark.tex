@@ -40,7 +40,50 @@ A question the community independently posed, answered, or refuted after
 the cutoff is evidence the pipeline surfaces questions worth asking; a
 premise the community later refuted is the strongest success mode, since
 the system isolated a published conclusion that was an artifact awaiting
-correction.
+correction. Figure~\ref{fig:backtest} summarizes the protocol.
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+    font=\small,
+    box/.style={rectangle, rounded corners=2pt, draw=black!55, align=center,
+                minimum height=0.66cm, inner sep=4pt},
+    past/.style={box, fill=blue!10},
+    future/.style={box, fill=green!12},
+    res/.style={box, fill=orange!18},
+    arr/.style={-{Stealth[length=2.2mm]}, semithick, black!65}
+  ]
+    % timeline
+    \draw[very thick, black!50, -{Stealth[length=3mm]}] (0,0) -- (13.6,0);
+    \draw[thick, red!60!black, dashed] (5.4,-0.55) -- (5.4,2.35)
+      node[above, font=\scriptsize\itshape, text=red!60!black, align=center]
+      {cutoff\\2020-12-31};
+    \node[font=\scriptsize, black!60] at (2.6,-0.35) {2015--2020};
+    \node[font=\scriptsize, black!60] at (9.4,-0.35) {2021--2026};
+
+    \node[past]   (corpus) at (1.6,1.0) {\corpusA};
+    \node[past]   (gen)    at (4.2,1.0) {Generate\\\& Freeze};
+    \node[future] (vcorp)  at (7.0,1.0) {Validation\\Corpus};
+    \node[future] (retr)   at (9.3,1.0) {Retrieve};
+    \node[future] (judge)  at (11.2,1.0) {Judge};
+    \node[res]    (outc)   at (13.2,1.0) {Outcome};
+
+    \draw[arr] (corpus) -- (gen);
+    \draw[arr] (gen) -- (vcorp);
+    \draw[arr] (vcorp) -- (retr);
+    \draw[arr] (retr) -- (judge);
+    \draw[arr] (judge) -- (outc);
+
+    \node[font=\scriptsize, align=left, black!70] at (13.0,2.0)
+      {answered: 2\\posed, open: 1\\partial: 7\\ignored: 0};
+  \end{tikzpicture}
+  \caption{Historical backtesting. Questions are generated from a
+  corpus frozen at the cutoff, then judged against post-cutoff
+  literature the pipeline never saw. The right panel shows the observed
+  outcome distribution for the ten ranked questions
+  (Section~\ref{sec:experiments:validation}).}
+  \label{fig:backtest}
+\end{figure}
 
 \subsection{Question quality rubric}
 

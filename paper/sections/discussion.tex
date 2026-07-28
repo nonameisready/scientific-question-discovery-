@@ -1,4 +1,4 @@
-\section{Discussion and Limitations}
+\section{Discussion}
 \label{sec:discussion}
 
 \paragraph{What the backtest does and does not show.}
@@ -11,47 +11,62 @@ obviousness; a question everyone was about to ask scores well. The
 premise-refuted outcome is the cleanest signal, since it requires the
 system to have flagged a specific published conclusion as fragile before
 the community overturned it. Scaling from 10 questions to hundreds, and
-comparing against baselines (questions sampled from review-paper future
-work sections; questions generated without the evidence graph), is the
-necessary next step before strong claims.
-
-\paragraph{Abstract-only extraction.}
-Claims are currently extracted from abstracts. The calibration review
-showed abstracts carry the load-bearing conclusions, but assumptions and
-uncertainty statements often live in the body; full-text ingestion (with
-the chunk-level source locations the schema already mandates) should
-raise both claim coverage and adjudication quality.
+comparing against baselines (questions sampled from review-paper
+future-work sections; questions generated without the evidence graph),
+is the necessary next step before strong claims.
 
 \paragraph{Human adjudication is load-bearing---by design.}
 Tension typing and question curation are human steps, and the reviewed
 sample shows why: only 1 of 16 top candidates was a true contradiction.
 The framework's contribution is to make expert judgment cheap and
 auditable (typed verdicts over ranked candidates, committed as data)
-rather than to eliminate it. Automating adjudication against the growing
-corpus of human verdicts---with the 33\% early-precision figure as the
-baseline to beat---is a measurable follow-on task.
+rather than to eliminate it. Automating adjudication against the
+growing corpus of human verdicts---with the 33\% early-precision figure
+as the baseline to beat---is a measurable follow-on task.
 
-\paragraph{LLM-judge limitations.}
-The clarity dimension initially scored uniformly and was converted to a
-gate; middle-band value scores compress within a few tenths of a point.
-Pairwise-comparison judging and multi-judge panels are the obvious
-remedies. All judge prompts and per-component scores are committed, so
-these comparisons can be run retrospectively.
+\subsection{Threats to validity}
+\label{sec:discussion:threats}
 
-\paragraph{Single-domain instantiation.}
-Exoplanet atmospheres was chosen because the three evidence layers align
-unusually well. The framework's interfaces (claims, typed tensions,
-signal-prioritized generation, two-stage ranking) are domain-agnostic,
-but the topic vocabulary for tension candidates and the falsification
-screens are domain-supplied; porting to a second domain is the direct
-test of generality.
+\begin{description}
+  \item[Single domain (astronomy only).] Exoplanet atmospheres was
+    chosen because literature, catalogs, and observation archives align
+    unusually well. The framework's interfaces are domain-agnostic, but
+    the tension topic vocabulary and falsification screens are
+    domain-supplied; the engagement rate may not transfer to fields with
+    looser evidential structure. Porting to a second domain is the
+    direct test.
+  \item[Abstract-only extraction.] Claims are extracted from abstracts.
+    Calibration showed abstracts carry the load-bearing conclusions, but
+    assumptions and uncertainty statements often live in the body;
+    full-text ingestion (with the chunk-level source locations the
+    schema already mandates) should raise claim coverage and
+    adjudication quality.
+  \item[Single human adjudicator.] All tension verdicts and curation
+    decisions come from one domain reviewer. Verdicts are committed
+    verbatim and re-appliable, so inter-annotator agreement can be
+    measured by replaying the same candidates past additional
+    reviewers---but it has not yet been.
+  \item[Judge bias.] The validation judge is an LLM; engagement
+    judgments (``substantive'' vs.\ topical) retain subjectivity even
+    with citations restricted to retrieved records. The extraction,
+    ranking, and validation stages also share a model family, risking
+    correlated blind spots. Mitigations in place: forced bibcode-grounded
+    evidence, human spot-checks of verdicts; mitigations still needed:
+    independent judges, human re-scoring of a verdict sample.
+  \item[Small sample, no baseline.] Ten questions support existence
+    claims, not rates. The engagement-rate confounds identified in the
+    failure analysis (highly-cited targets, targeted validation queries)
+    require the baseline comparisons described above before the headline
+    numbers can be read as effect sizes.
+\end{description}
 
-\paragraph{Implications for AGI research.}
+\paragraph{Implications for general scientific intelligence.}
 The results support a specific, testable position: question-asking
 competence can be decomposed into auditable stages---evidence
 representation, tension detection, refinement, prioritization---each of
 which can be measured and improved independently, with historical
-backtesting as the end-to-end score. We suggest that benchmarks of this
-form, rather than open-ended ideation judged by contemporaneous panels,
-are the right instrument for tracking progress on scientific
-question discovery.
+backtesting as the end-to-end score. If artificial general intelligence
+is to include the scientist's core skill of knowing \emph{what to ask},
+benchmarks of this form---rather than open-ended ideation judged by
+contemporaneous panels---are the right instrument for tracking progress
+toward it.

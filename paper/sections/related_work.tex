@@ -2,38 +2,81 @@
 \label{sec:related}
 
 \paragraph{Automated scientific discovery.}
-Systems from early hypothesis-formation programs to contemporary
-``AI scientist'' pipelines aim to automate stages of the research loop.
-Most target hypothesis generation, experiment design, or paper writing
-downstream of an already-chosen question; the selection of \emph{which}
-question deserves the loop is usually left to the human operator or an
-unexamined prompt. \todo{cite: BACON/AM lineage, robot scientist (Adam/Eve),
-recent LLM agent-scientist systems}
+Computational discovery has a long lineage: \textsc{Bacon} and its
+successors rediscovered empirical laws from data
+\citep{langley1987scientific}, and the Robot Scientist line (Adam, Eve)
+closed the loop from hypothesis generation through physical
+experimentation in functional genomics
+\citep{king2004robot,king2009automation}. Contemporary
+``agentic-scientist'' systems extend this ambition with large language
+models: the AI Scientist generates ideas and drafts papers end to end
+\citep{lu2024aiscientist}, Google's AI co-scientist generates and
+tournament-ranks research hypotheses with multi-agent debate
+\citep{gottweis2025coscientist}, and deep-research agents synthesize
+literature into reports \citep{openai2025deepresearch}. Across this
+line, the object produced is a hypothesis, an experiment, or a paper;
+the selection of \emph{which question deserves the loop} is either
+inherited from the human operator or made implicitly inside a prompt.
+Our system makes that selection step itself the object of study, with
+its own representations, human checkpoints, and---critically---an
+outcome-based evaluation.
 
-\paragraph{Open-ended learning and curiosity.}
-Intrinsic-motivation and novelty-search methods formalize ``interestingness''
-for agents exploring environments. Our setting differs in that the
-environment is the scientific record itself: interestingness must be
-grounded in evidential structure (contradiction, unexplained variance,
-single-source support) rather than state-visitation statistics.
-\todo{cite: intrinsic motivation, novelty search, open-endedness}
+\paragraph{Literature understanding and scientific knowledge bases.}
+Our evidence layer builds on infrastructure for machine-readable
+science: literature graphs such as Semantic Scholar
+\citep{ammar2018construction} and OpenAlex \citep{priem2022openalex},
+structured claim resources like the Open Research Knowledge Graph
+\citep{jaradeh2019orkg}, scientific claim verification
+\citep{wadden2020scifact}, science-specialized language models
+\citep{taylor2022galactica}, and retrieval-augmented literature agents
+\citep{lala2023paperqa,skarlinski2024superhuman}. We differ in what the
+representation is \emph{for}: claims carry verification tiers and
+source locations, and relations between claims are typed tension edges
+(\emph{contradicts, qualifies, challenges-method, explains-discrepancy,
+complements, supports}) adjudicated by a human---an empirical necessity,
+since our review found only 1 of 16 top tension candidates to be a
+genuine contradiction (Section~\ref{sec:experiments:tension}).
 
-\paragraph{LLMs for science.}
-Large language models are increasingly used for literature synthesis,
-claim verification, and research ideation. Ideation studies typically
-evaluate novelty and feasibility by human panels at generation time; our
-historical validation instead scores questions by what the field actually
-did afterwards, which removes the panel's guess about the future from the
-measurement. \todo{cite: scientific claim verification, LLM ideation
-evaluations, LLM-as-judge caveats}
+\paragraph{Open-ended learning and intrinsic motivation.}
+Curiosity-driven agents formalize ``interestingness'' via intrinsic
+motivation \citep{oudeyer2007intrinsic,schmidhuber2010formal}, novelty
+search \citep{lehman2011abandoning}, and the broader open-endedness
+program \citep{stanley2017openendedness}. Those signals are computed
+from an agent's own experience stream; ours are computed from the
+evidential structure of the scientific record---contradiction,
+single-source support, unexamined assumptions---which is where working
+scientists actually look for questions.
 
-\paragraph{Claim extraction and scientific knowledge graphs.}
-Our evidence graph follows work on typed scientific claim
-representations, with two deliberate departures: every claim carries its
-source location and verification tier, and tension edges between claims
-are typed (\emph{contradicts, qualifies, challenges-method,
-explains-discrepancy, complements, supports}) after a human review pass
-showed that collapsing all tension into ``contradiction'' wrongly
-upgrades limiting conditions into refutations
-(Section~\ref{sec:experiments:tension}). \todo{cite: SciFact, knowledge
-graph construction from literature}
+\paragraph{LLM research ideation and its evaluation.}
+Recent studies evaluate LLM-generated research ideas with expert panels,
+finding above-human novelty ratings alongside feasibility concerns
+\citep{si2024canllms}; LLM-as-judge protocols and their biases are
+themselves under scrutiny \citep{zheng2023judging}. Panel evaluation
+asks contemporaries to \emph{predict} a question's value. Our historical
+backtest removes that prediction: questions are generated from a
+time-frozen corpus and scored by what the field actually did in the
+following five years.
+
+\begin{table}[t]
+  \centering
+  \caption{Positioning relative to representative systems. ``Evidence
+  tensions'' = questions/hypotheses grounded in explicit cross-paper
+  evidential structure; ``historical validation'' = outcome-based
+  evaluation against literature published after a data cutoff.}
+  \label{tab:comparison}
+  \small
+  \begin{tabular}{lcccc}
+    \toprule
+    System & Hypotheses & Questions & Tensions & Backtest \\
+    \midrule
+    \textsc{Bacon} \citep{langley1987scientific} & \checkmark & -- & -- & -- \\
+    Robot Scientist \citep{king2009automation} & \checkmark & -- & -- & -- \\
+    AI Scientist \citep{lu2024aiscientist} & \checkmark & -- & -- & -- \\
+    AI co-scientist \citep{gottweis2025coscientist} & \checkmark & -- & -- & -- \\
+    PaperQA2 \citep{skarlinski2024superhuman} & -- & -- & -- & -- \\
+    LLM ideation \citep{si2024canllms} & \checkmark & \checkmark & -- & -- \\
+    \midrule
+    This work & -- & \checkmark & \checkmark & \checkmark \\
+    \bottomrule
+  \end{tabular}
+\end{table}

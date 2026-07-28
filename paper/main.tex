@@ -7,14 +7,16 @@
 \usepackage{booktabs}
 \usepackage{graphicx}
 \usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
 \usepackage[colorlinks=true,linkcolor=blue!60!black,citecolor=blue!60!black,urlcolor=blue!60!black]{hyperref}
 \usepackage[round]{natbib}
 
 \newcommand{\todo}[1]{\textcolor{red!70!black}{[TODO: #1]}}
 \newcommand{\corpusA}{\textsc{Corpus~A}}
 
-\title{Scientific Question Discovery:\\
-Toward Question-Asking as a Core Capability of AGI}
+\title{Evidence-Based Scientific Question Discovery:\\
+\large A Framework with Historical Backtesting}
 
 \author{%
   \todo{author list}\\
@@ -27,9 +29,9 @@ Toward Question-Asking as a Core Capability of AGI}
 \maketitle
 
 \begin{abstract}
-We argue that a key capability on the path to artificial general
-intelligence is not answering questions but \emph{discovering scientific
-questions worth investigating}. We present a framework that turns a
+Current AI systems are optimized for answering questions; the scientific
+enterprise is bottlenecked earlier, at \emph{discovering the questions
+worth investigating}. We present a framework that turns a
 traceable, reproducible, scope-controlled research corpus into ranked,
 falsifiable research questions: evidence is represented as provenance-carrying
 claims; cross-paper tensions are detected, typed, and human-adjudicated;
