@@ -41,4 +41,3 @@ wandb/
 
 # LaTeX build output (rebuild from source)
 paper/main.pdf
-paper/main_anon.pdf
