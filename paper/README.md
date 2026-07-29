@@ -34,3 +34,15 @@ never hand-typed from memory. To add a citation: add its bibcode to the
 `CITED` list in the snippet stored in the repo history (commit that
 introduced `references.bib`) and re-run it, or extend it into a small
 script under `src/` if this becomes frequent.
+
+## Double-blind build
+
+`main.tex` has an anonymization switch. Build the double-blind version with:
+
+```bash
+pdflatex -jobname=main_anon "\def\ANONYMOUS{1}\input{main}"
+```
+
+For double-blind source submission, strip the named `\author` branch from
+`main.tex` before packaging — the switch hides the name in the PDF, not in
+the sources.
