@@ -1,3 +1,5 @@
+Paper: Evidence-Based Scientific Question Discovery: A Framework with Historical Backtesting — arXiv:2608.09968
+
 # Scientific Question Discovery
 
 > Research on automated scientific question discovery toward AGI — exploring how intelligent agents can ask good questions like scientists do.
